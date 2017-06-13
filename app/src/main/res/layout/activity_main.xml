@@ -1,0 +1,168 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black" >
+
+    <RelativeLayout
+        android:id="@+id/viewContainerProductsTray"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toLeftOf="@+id/relativeLayoutRightOptionsContainer"
+        android:layout_toRightOf="@+id/linearLayoutLeftOptionsContainer"
+        android:background="@color/slight_transparent"
+        android:visibility="gone" >
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerViewProductsTray"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:scrollbars="vertical" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_toRightOf="@+id/recyclerViewProductsTray" >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+
+                <android.support.v7.widget.AppCompatTextView
+                    android:id="@+id/textViewColorsOfProduct"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:text="@string/colors_of_product"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/text_size_medium" />
+
+                <LinearLayout
+                    android:id="@+id/linearLayoutProductColorsTrayContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+        </ScrollView>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/viewContainerColorsTray"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toLeftOf="@+id/relativeLayoutRightOptionsContainer"
+        android:layout_toRightOf="@+id/linearLayoutLeftOptionsContainer"
+        android:background="@color/slight_transparent"
+        android:visibility="gone" >
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerViewColorsTray"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:scrollbars="vertical" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_toLeftOf="@+id/recyclerViewColorsTray" >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+
+                <android.support.v7.widget.AppCompatTextView
+                    android:id="@+id/textViewShadesOfColor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:text="@string/shades_of_color"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/text_size_medium" />
+
+                <LinearLayout
+                    android:id="@+id/linearLayoutSecondaryColorsTrayContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+        </ScrollView>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/viewContainerCamera"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toLeftOf="@+id/relativeLayoutRightOptionsContainer"
+        android:layout_toRightOf="@+id/linearLayoutLeftOptionsContainer"
+        android:orientation="vertical" >
+
+        <com.e2esp.bergerpaints.livevisualizer.views.CameraView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/cameraView" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerViewTestSelections"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true" />
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayoutLeftOptionsContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:gravity="center_horizontal"
+        android:orientation="vertical" >
+
+        <ImageButton
+            android:id="@+id/imageButtonToggleOptions"
+            android:layout_width="@dimen/margin_medium"
+            android:layout_height="@dimen/margin_medium"
+            android:src="@drawable/arrows_left"
+            android:scaleType="centerInside"
+            android:background="@android:color/transparent" />
+
+        <com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar
+            android:id="@+id/seekBarTolerance"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" />
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/relativeLayoutRightOptionsContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true"
+        android:orientation="vertical" >
+
+        <ImageView
+            android:id="@+id/imageViewSymphonyColors"
+            android:layout_width="@dimen/color_box_size"
+            android:layout_height="@dimen/color_box_size"
+            android:layout_alignParentTop="true"
+            android:src="@drawable/color_box" />
+
+        <ImageView
+            android:id="@+id/imageViewProductColors"
+            android:layout_width="@dimen/color_box_size"
+            android:layout_height="@dimen/color_box_size"
+            android:layout_alignParentBottom="true"
+            android:src="@drawable/color_box" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

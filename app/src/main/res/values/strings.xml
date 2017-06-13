@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Live Visualizer</string>
+
+    <string name="colors_symphony">Colors Symphony</string>
+    <string name="product_colors">Product Colors</string>
+
+    <string name="shades_of_color">Shades of %s<!--Color--></string>
+    <string name="colors_of_product">Colors of %s<!--Product--></string>
+
+    <string name="product_name">Product Name</string>
+
+</resources>
