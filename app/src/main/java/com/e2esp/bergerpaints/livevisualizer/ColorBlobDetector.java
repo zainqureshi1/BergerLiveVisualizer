@@ -27,7 +27,6 @@ public class ColorBlobDetector {
     private static double mMinContourArea = 0.3;
     // Color radius for range checking in HSV color space
     private Scalar mColorRadius = new Scalar(50, 50, 50, 0);
-    private Mat mSpectrum = new Mat();
     private List<MatOfPoint> mContours = new ArrayList<>();
 
     // Cache
@@ -48,35 +47,19 @@ public class ColorBlobDetector {
     }
 
     public void setHsvColor(Scalar hsvColor) {
-        double minH = (hsvColor.val[0] >= mColorRadius.val[0]) ? hsvColor.val[0] - mColorRadius.val[0] : 0;
-        double maxH = (hsvColor.val[0] + mColorRadius.val[0] <= 255) ? hsvColor.val[0] + mColorRadius.val[0] : 255;
+        mLowerBound.val[0] = Math.max(hsvColor.val[0] - mColorRadius.val[0], 0);
+        mUpperBound.val[0] = Math.min(hsvColor.val[0] + mColorRadius.val[0], 360);
 
-        mLowerBound.val[0] = minH;
-        mUpperBound.val[0] = maxH;
+        mLowerBound.val[1] = Math.max(hsvColor.val[1] - mColorRadius.val[1], 0);
+        mUpperBound.val[1] = Math.min(hsvColor.val[1] + mColorRadius.val[1], 255);
 
-        mLowerBound.val[1] = hsvColor.val[1] - mColorRadius.val[1];
-        mUpperBound.val[1] = hsvColor.val[1] + mColorRadius.val[1];
-
-        mLowerBound.val[2] = hsvColor.val[2] - mColorRadius.val[2];
-        mUpperBound.val[2] = hsvColor.val[2] + mColorRadius.val[2];
+        mLowerBound.val[2] = Math.max(hsvColor.val[2] - mColorRadius.val[2], 0);
+        mUpperBound.val[2] = Math.min(hsvColor.val[2] + mColorRadius.val[2], 255);
 
         mLowerBound.val[3] = 0;
         mUpperBound.val[3] = 255;
 
-        Mat spectrumHsv = new Mat(1, (int)(maxH-minH), CvType.CV_8UC3);
-
-        for (int j = 0; j < maxH-minH; j++) {
-            byte[] tmp = {(byte)(minH+j), (byte)255, (byte)255};
-            spectrumHsv.put(0, j, tmp);
-        }
-
-        Imgproc.cvtColor(spectrumHsv, mSpectrum, Imgproc.COLOR_HSV2RGB_FULL, 4);
-
         mUpdateNeeded = true;
-    }
-
-    public Mat getSpectrum() {
-        return mSpectrum;
     }
 
     public void setMinContourArea(double area) {

@@ -1,43 +1,19 @@
 package com.e2esp.bergerpaints.livevisualizer.activities;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
 
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
-import org.opencv.android.Utils;
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
-import org.opencv.core.Size;
-import org.opencv.imgproc.Imgproc;
-
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.View.OnTouchListener;
-import android.view.SurfaceView;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
@@ -45,38 +21,27 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
-import com.e2esp.bergerpaints.livevisualizer.ColorBlobDetector;
 import com.e2esp.bergerpaints.livevisualizer.R;
 import com.e2esp.bergerpaints.livevisualizer.adapters.ColorsTrayRecyclerAdapter;
 import com.e2esp.bergerpaints.livevisualizer.adapters.ProductsTrayRecyclerAdapter;
-import com.e2esp.bergerpaints.livevisualizer.adapters.TestSelectionRecyclerAdapter;
+import com.e2esp.bergerpaints.livevisualizer.fragments.CameraFragment;
+import com.e2esp.bergerpaints.livevisualizer.fragments.StillFragment;
+import com.e2esp.bergerpaints.livevisualizer.interfaces.OnFragmentInteractionListener;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnTraysColorClickListener;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnTraysProductClickListener;
 import com.e2esp.bergerpaints.livevisualizer.models.PrimaryColor;
 import com.e2esp.bergerpaints.livevisualizer.models.ProductColor;
 import com.e2esp.bergerpaints.livevisualizer.models.SecondaryColor;
-import com.e2esp.bergerpaints.livevisualizer.models.TestSelection;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
-import com.e2esp.bergerpaints.livevisualizer.views.CameraView;
 import com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar;
 
-public class MainActivity extends Activity implements OnTouchListener {
-
+public class MainActivity extends FragmentActivity implements OnFragmentInteractionListener {
     private static final String TAG = "MainActivity";
 
-    private boolean isBlobColorSelected = false;
-    private boolean isFillColorSelected = false;
-    private Mat mRgba;
-    private Rect mTouchedRect;
-    private Scalar mBlobColorRgba;
-    private Scalar mBlobColorHsv;
-    private ColorBlobDetector mDetector;
-    private Mat mSpectrum;
-    private Size SPECTRUM_SIZE;
-    private Scalar mContourColor;
-    private Scalar mFillColorRgb;
-    private Scalar mFillColorHsv;
+    private final int FRAGMENT_INDEX_CAMERA = 0;
+    private final int FRAGMENT_INDEX_STILL = 1;
 
     private AppCompatTextView textViewShadesOfColor;
     private AppCompatTextView textViewColorsOfProduct;
@@ -96,27 +61,24 @@ public class MainActivity extends Activity implements OnTouchListener {
     private ArrayList<ProductColor> activeProductColorsList;
     private ProductsTrayRecyclerAdapter productsRecyclerAdapter;
 
-    private RecyclerView recyclerViewTestSelections;
-    private ArrayList<TestSelection> testSelectionsList;
-    private TestSelectionRecyclerAdapter testSelectionRecyclerAdapter;
-
     private ImageButton imageButtonToggleOptions;
     private LinearLayout linearLayoutLeftOptionsContainer;
     private RelativeLayout relativeLayoutRightOptionsContainer;
 
     private ImageView imageViewSymphonyColors;
     private ImageView imageViewProductColors;
+    private ImageView imageViewTakePicture;
 
-    private View viewContainerCamera;
     private VerticalSeekBar seekBarTolerance;
-    private CameraView cameraView;
+
+    private View viewContainerFragments;
+    private CameraFragment cameraFragment;
+    private StillFragment stillFragment;
 
     private Animation animSlideLeftIn;
     private Animation animSlideLeftOut;
     private Animation animSlideRightIn;
     private Animation animSlideRightOut;
-
-    private Handler handler;
 
     private boolean optionsVisible = true;
     private boolean animatingOptions = false;
@@ -124,27 +86,7 @@ public class MainActivity extends Activity implements OnTouchListener {
     private boolean colorsTrayVisible;
     private boolean productsTrayVisible;
 
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS: {
-                    Log.i(TAG, "OpenCV loaded successfully");
-                    cameraView.enableView();
-                    cameraView.setOnTouchListener(MainActivity.this);
-                }
-                break;
-                default: {
-                    super.onManagerConnected(status);
-                }
-                break;
-            }
-        }
-    };
-
-    public MainActivity() {
-        Log.i(TAG, "Instantiated new " + this.getClass());
-    }
+    private int visibleFragmentIndex = -1;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -155,34 +97,10 @@ public class MainActivity extends Activity implements OnTouchListener {
         setContentView(R.layout.activity_main);
 
         setupViews();
+        initAnimations();
         setupColorsTray();
         setupProductsTray();
-
-        /*new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                List<Camera.Size> resolutionList = cameraView.getResolutionList();
-                cameraView.setResolution(cameraView.getResolution(1280, 720));
-            }
-        }, 2000);*/
-    }
-
-    private void init(int cameraWidth, int cameraHeight) {
-        mRgba = new Mat(cameraHeight, cameraWidth, CvType.CV_8UC4);
-        mTouchedRect = new Rect();
-        mDetector = new ColorBlobDetector();
-        mSpectrum = new Mat();
-        SPECTRUM_SIZE = new Size(200, 64);
-        mBlobColorRgba = new Scalar(255);
-        mBlobColorHsv = new Scalar(255);
-        mContourColor = new Scalar(255, 0, 0, 255);
-
-        animSlideLeftIn = AnimationUtils.loadAnimation(this, R.anim.slide_left_in);
-        animSlideLeftOut = AnimationUtils.loadAnimation(this, R.anim.slide_left_out);
-        animSlideRightIn = AnimationUtils.loadAnimation(this, R.anim.slide_right_in);
-        animSlideRightOut = AnimationUtils.loadAnimation(this, R.anim.slide_right_out);
-
-        handler = new Handler();
+        showFragment(FRAGMENT_INDEX_CAMERA);
     }
 
     private void setupViews() {
@@ -218,12 +136,6 @@ public class MainActivity extends Activity implements OnTouchListener {
         recyclerViewProductsTray.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         recyclerViewProductsTray.setAdapter(productsRecyclerAdapter);
 
-        recyclerViewTestSelections = (RecyclerView) findViewById(R.id.recyclerViewTestSelections);
-        testSelectionsList = new ArrayList<>();
-        testSelectionRecyclerAdapter = new TestSelectionRecyclerAdapter(this, testSelectionsList);
-        recyclerViewTestSelections.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        recyclerViewTestSelections.setAdapter(testSelectionRecyclerAdapter);
-
         imageButtonToggleOptions = (ImageButton) findViewById(R.id.imageButtonToggleOptions);
         imageButtonToggleOptions.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -258,41 +170,28 @@ public class MainActivity extends Activity implements OnTouchListener {
             }
         });
 
-        viewContainerCamera = findViewById(R.id.viewContainerCamera);
+        imageViewTakePicture = (ImageView) findViewById(R.id.imageViewTakePicture);
+        imageViewTakePicture.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (cameraFragment != null) {
+                    cameraFragment.takePicture();
+                }
+            }
+        });
 
-        cameraView = (CameraView) findViewById(R.id.cameraView);
-        cameraView.setVisibility(SurfaceView.VISIBLE);
-        cameraView.setMaxFrameSize(1280, 720);
-        cameraView.setCvCameraViewListener(cameraViewListener);
+        viewContainerFragments = findViewById(R.id.viewContainerFragments);
 
         seekBarTolerance = (VerticalSeekBar) findViewById(R.id.seekBarTolerance);
         seekBarTolerance.setProgress(Utility.colorToPercentTolerance(40));
         seekBarTolerance.setOnSeekBarChangeListener(seekBarChangeListener);
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        if (cameraView != null)
-            cameraView.disableView();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (!OpenCVLoader.initDebug()) {
-            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
-        } else {
-            Log.d(TAG, "OpenCV library found inside package. Using it!");
-            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-        }
-    }
-
-    public void onDestroy() {
-        super.onDestroy();
-        if (cameraView != null)
-            cameraView.disableView();
+    private void initAnimations() {
+        animSlideLeftIn = AnimationUtils.loadAnimation(this, R.anim.slide_left_in);
+        animSlideLeftOut = AnimationUtils.loadAnimation(this, R.anim.slide_left_out);
+        animSlideRightIn = AnimationUtils.loadAnimation(this, R.anim.slide_right_in);
+        animSlideRightOut = AnimationUtils.loadAnimation(this, R.anim.slide_right_out);
     }
 
     private void toggleOptions() {
@@ -315,6 +214,34 @@ public class MainActivity extends Activity implements OnTouchListener {
                 imageButtonToggleOptions.setImageResource(optionsVisible ? R.drawable.arrows_left : R.drawable.arrows_right);
             }
         }, 500);
+    }
+
+    private CameraFragment getCameraFragment() {
+        if (cameraFragment == null) {
+            cameraFragment = CameraFragment.newInstance();
+        }
+        return cameraFragment;
+    }
+
+    private StillFragment getStillFragment() {
+        if (stillFragment == null) {
+            stillFragment = StillFragment.newInstance();
+        }
+        return stillFragment;
+    }
+
+    private void showFragment(int index) {
+        switch (index) {
+            case FRAGMENT_INDEX_CAMERA:
+                getSupportFragmentManager().beginTransaction().replace(R.id.viewContainerFragments, getCameraFragment()).commit();
+                imageViewTakePicture.setVisibility(View.VISIBLE);
+                break;
+            case FRAGMENT_INDEX_STILL:
+                getSupportFragmentManager().beginTransaction().replace(R.id.viewContainerFragments, getStillFragment()).commit();
+                imageViewTakePicture.setVisibility(View.INVISIBLE);
+                break;
+        }
+        visibleFragmentIndex = index;
     }
 
     /*
@@ -872,7 +799,7 @@ public class MainActivity extends Activity implements OnTouchListener {
         colorsRecyclerAdapter.notifyDataSetChanged();
         textViewShadesOfColor.setText("");
         linearLayoutSecondaryColorsTrayContainer.removeAllViews();
-        viewContainerCamera.bringToFront();
+        viewContainerFragments.bringToFront();
         linearLayoutLeftOptionsContainer.bringToFront();
         relativeLayoutRightOptionsContainer.bringToFront();
     }
@@ -1176,7 +1103,7 @@ public class MainActivity extends Activity implements OnTouchListener {
         productsRecyclerAdapter.notifyDataSetChanged();
         textViewColorsOfProduct.setText("");
         linearLayoutProductColorsTrayContainer.removeAllViews();
-        viewContainerCamera.bringToFront();
+        viewContainerFragments.bringToFront();
         linearLayoutLeftOptionsContainer.bringToFront();
         relativeLayoutRightOptionsContainer.bringToFront();
     }
@@ -1318,286 +1245,74 @@ public class MainActivity extends Activity implements OnTouchListener {
     private void secondaryColorClicked(SecondaryColor color) {
         hideColorsTray();
         hideProductsTray();
-        int[] rgb = Utility.colorIntToRgb(color.getColor());
-        mFillColorRgb = new Scalar(rgb[0], rgb[1], rgb[2]);
-        mFillColorHsv = Utility.convertScalarRgb2Hsv(mFillColorRgb);
 
-        isFillColorSelected = true;
-        testSelectionsList.clear();
+        if (cameraFragment != null) {
+            cameraFragment.setFillColor(color.getColor());
+        }
     }
 
     /*
      End :: Colors and Products Trays
      */
 
-    public boolean onTouch(View v, MotionEvent event) {
-        int cols = mRgba.cols();
-        int rows = mRgba.rows();
-
-        int xOffset = (cameraView.getWidth() - cols) / 2;
-        int yOffset = (cameraView.getHeight() - rows) / 2;
-
-        int x = (int) event.getX() - xOffset;
-        int y = (int) event.getY() - yOffset;
-
-        Log.i(TAG, "Touch image coordinates: (" + x + ", " + y + ")");
-
-        if ((x < 0) || (y < 0) || (x > cols) || (y > rows)) return false;
-
-        mTouchedRect.x = (x > 4) ? x - 4 : 0;
-        mTouchedRect.y = (y > 4) ? y - 4 : 0;
-
-        mTouchedRect.width = (x + 4 < cols) ? x + 4 - mTouchedRect.x : cols - mTouchedRect.x;
-        mTouchedRect.height = (y + 4 < rows) ? y + 4 - mTouchedRect.y : rows - mTouchedRect.y;
-
-        isBlobColorSelected = true;
-        isFillColorSelected = false;
-
+    private void clearColorSelections() {
         imageViewSymphonyColors.clearColorFilter();
         imageViewProductColors.clearColorFilter();
-
-        return false; // don't need subsequent touch events
     }
 
-    private Scalar calculateBlobColorHsv() {
-        Mat touchedRegionRgba = mRgba.submat(mTouchedRect);
-
-        Mat touchedRegionHsv = new Mat();
-        Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv, Imgproc.COLOR_RGB2HSV_FULL);
-
-        // Calculate average color of touched region
-        Scalar blobColorHsv = Core.sumElems(touchedRegionHsv);
-        int pointCount = mTouchedRect.width * mTouchedRect.height;
-        for (int i = 0; i < blobColorHsv.val.length; i++)
-            blobColorHsv.val[i] /= pointCount;
-
-        Log.i(TAG, "blobColorHsv: "+blobColorHsv);
-        mBlobColorRgba = Utility.convertScalarHsv2Rgba(blobColorHsv);
-
-        touchedRegionRgba.release();
-        touchedRegionHsv.release();
-
-        //Log.i(TAG, "Touched Rect: "+mTouchedRect);
-        //Log.i(TAG, "Touched RGBA: "+rgbaDump);
-        //Log.i(TAG, "BloB Color HSV: "+blobColorHsv.toString());
-        return blobColorHsv;
-    }
-
-    private Point touchPoint() {
-       return new Point(mTouchedRect.x + mTouchedRect.width / 2, mTouchedRect.y + mTouchedRect.height / 2);
-    }
-
-    private Mat floodFill(Mat img, Point seedPoint, Scalar newVal)
-    {
-        Mat clone = img.clone();
-
-        Mat mask = Mat.zeros(img.rows() + 2, img.cols() + 2, CvType.CV_8U);
-        double newHue = newVal.val[0];
-        Imgproc.floodFill(img, mask, seedPoint, new Scalar(newHue), new Rect(), new Scalar(10), new Scalar(10), 8 + Imgproc.FLOODFILL_FIXED_RANGE);//, 4 + (255 << 8) + Imgproc.FLOODFILL_MASK_ONLY);
-
-        //Core.subtract(floodfilled, Scalar.all(0), floodfilled);
-
-        //Rect roi = new Rect(1, 1, img.cols(), img.rows());
-        //Mat result = new Mat();
-        //floodfilled.submat(roi).copyTo(result);
-
-        Mat diff = new Mat();
-        Core.subtract(img, clone, diff);
-        int nz = Core.countNonZero(diff);
-        Log.i(TAG, "clonedDiff :: rows:"+diff.rows()+" cols:"+diff.cols()+" nz:"+nz);
-
-        return img;
-    }
-
-    private void floodFill1(Mat img, int channel, double newValue, Point seedPoint, double variation) {
-        Mat clone = img.clone();
-
-        try {
-            int rows = img.rows();
-            int cols = img.cols();
-            boolean[][] visited = new boolean[rows][cols];
-
-            if (seedPoint.x >= 0 && seedPoint.x < rows &&
-                    seedPoint.y >= 0 && seedPoint.y < cols) {
-                Queue<Point> queue = new LinkedList<>();
-                queue.add(seedPoint);
-
-                double initialValue = img.get((int)seedPoint.x, (int)seedPoint.y)[channel];
-                double loLimit = Math.max(0, initialValue - variation);
-                double hiLimit = Math.min(180, initialValue + variation);
-
-                int pixelCount = 0;
-                while (!queue.isEmpty()) {
-                    Point p = queue.remove();
-                    if (!visited[(int) p.x][(int) p.y]
-                            && setIfInRange(img, channel, newValue, p, loLimit, hiLimit)) {
-                        visited[(int) p.y][(int) p.x] = true;
-                        pixelCount++;
-
-                        if (p.x + 1 < rows) {
-                            queue.add(new Point(p.x + 1, p.y));
-                        }
-                        if (p.x - 1 >= 0) {
-                            queue.add(new Point(p.x - 1, p.y));
-                        }
-                        if (p.y + 1 < cols) {
-                            queue.add(new Point(p.x, p.y + 1));
-                        }
-                        if (p.y - 1 >= 0) {
-                            queue.add(new Point(p.x, p.y - 1));
-                        }
-                    }
-                    if (pixelCount % 10 == 0) {
-                        Log.i(TAG, "FloodFill1 :: During Matched Pixels: "+pixelCount);
-                    }
-                }
-                Log.i(TAG, "FloodFill1 :: Matched Pixels: "+pixelCount);
+    private void showStillScreen(final Bitmap bitmap) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                StillFragment.mBitmap = bitmap;
+                showFragment(FRAGMENT_INDEX_STILL);
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-        Mat diff = new Mat();
-        Core.subtract(img, clone, diff);
-        int nz = Core.countNonZero(diff);
-        Log.i(TAG, "clonedDiff :: rows:"+diff.rows()+" cols:"+diff.cols()+" nz:"+nz);
+        });
     }
 
-    private boolean setIfInRange(Mat img, int channel, double newValue, Point point, double loLimit, double hiLimit) {
-        double value = img.get((int)point.x, (int)point.y)[channel];
-        if (value >= loLimit && value <= hiLimit) {
-            img.get((int)point.x, (int)point.y)[channel] = newValue;
-            return true;
+    private boolean backPressed = false;
+    @Override
+    public void onBackPressed() {
+        if (backPressed) {
+            super.onBackPressed();
+            return;
         }
-        return false;
-    }
 
-    private Mat processCameraFrame(Mat inputRgba) {
-        mRgba = inputRgba;
+        if (visibleFragmentIndex == FRAGMENT_INDEX_STILL) {
+            showFragment(FRAGMENT_INDEX_CAMERA);
+            return;
+        }
 
-        if (isBlobColorSelected) {
-            if (mDetector.shouldUpdate()) {
-                Scalar blobColorHsv = calculateBlobColorHsv();
-                if (!mBlobColorHsv.equals(blobColorHsv)) {
-                    mBlobColorHsv = blobColorHsv;
-                    mDetector.setHsvColor(mBlobColorHsv);
-                }
-                if (mDetector.isUpdateNeeded()) {
-                    mDetector.process(inputRgba);
-                }
+        backPressed = true;
+        Toast.makeText(this, getString(R.string.press_back_again_to_exit), Toast.LENGTH_SHORT).show();
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                backPressed = false;
             }
-
-            List<MatOfPoint> contours = mDetector.getContours();
-            //Log.i(TAG, "Contours count: " + contours.size());
-            if (isFillColorSelected) {
-                Log.i(TAG, "mFillColorHsv: "+mFillColorHsv);
-                Imgproc.drawContours(inputRgba, contours, -1, mFillColorRgb, -1);
-
-                /*Mat hsv = new Mat();
-                Imgproc.cvtColor(inputRgba, hsv, Imgproc.COLOR_RGB2HSV);
-
-                List<Mat> channels = new ArrayList<>();
-                Core.split(hsv, channels);
-
-                Imgproc.drawContours(hsv, contours, -1, new Scalar(mFillColorHsv.val[0]), -1);
-
-                Point touchPoint = touchPoint();*/
-
-                /*List<Mat> channels = new ArrayList<>();
-                Core.split(hsv, channels);
-
-                Log.i(TAG, "FloodFill: before: Src: "+channels.get(0));
-                Mat channel = floodFill(channels.get(0), touchPoint, mFillColorHsv);
-                Log.i(TAG, "FloodFill: after: Src: "+channels.get(0));
-                Log.i(TAG, "FloodFill: after: Dst: "+channel);
-                channels.set(0, channel);
-
-                double newHue = mFillColorHsv.val[0];
-                Mat hueMat = new Mat(channel.rows(), channel.cols(), channel.type(), new Scalar(newHue));
-                Mat hueDiff = new Mat();
-                Core.subtract(channel, hueMat, hueDiff);
-                int nz = Core.countNonZero(hueDiff);
-                Log.i(TAG, "Hue Diff:: rows:"+hueDiff.rows()+" cols:"+hueDiff.cols()+" nz:"+nz);
-
-                Mat newHsv = new Mat();
-                Core.merge(channels, newHsv);
-                Mat diff = new Mat();
-                Core.subtract(hsv, newHsv, diff);
-                List<Mat> diffChs = new ArrayList<>();
-                Core.split(diff, diffChs);
-                Mat hueCh = diffChs.get(0);
-                //Imgproc.pyrDown(diff, diff);
-                //Imgproc.pyrDown(diff, diff);
-                int rows = hueCh.rows();
-                int cols = hueCh.cols();
-                Mat q1 = hueCh.submat(0, rows/2, 0, cols/2);
-                Mat q2 = hueCh.submat(rows/2+1, rows-1, 0, cols/2);
-                Mat q3 = hueCh.submat(0, rows/2, cols/2+1, cols-1);
-                Mat q4 = hueCh.submat(rows/2+1, rows-1, cols/2+1, cols-1);
-                int perQ = (rows * cols) / 4;
-                int q1z = perQ - Core.countNonZero(q1);
-                int q2z = perQ - Core.countNonZero(q2);
-                int q3z = perQ - Core.countNonZero(q3);
-                int q4z = perQ - Core.countNonZero(q4);
-                Log.i(TAG, "Difference Hue rows: "+rows+" cols: "+cols+" perQ: "+perQ);
-                Log.i(TAG, "Difference Hue q1z: "+q1z+" q2z: "+q2z+" q3z: "+q3z+" q4z: "+q4z);*/
-
-                //Imgproc.cvtColor(hsv, inputRgba, Imgproc.COLOR_HSV2RGB);
-
-                /*boolean addTest = false;//testSelectionsList.size() < 4;
-                if (addTest) {
-                    testSelectionsList.add(new TestSelection(Utility.matToBitmap(inputRgba), "inputRgba"));
-                    testSelectionsList.add(new TestSelection(Utility.matToBitmap(hsv), "hsv"));
-                }*/
-
-                /*if (addTest) {
-                    testSelectionsList.add(new TestSelection(matToBitmap(hsv), "hsv after channnel"));
-                    testSelectionsList.add(new TestSelection(matToBitmap(inputRgba), "inputRgba after channel"));
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            testSelectionRecyclerAdapter.notifyDataSetChanged();
-                        }
-                    }, 200);
-                }*/
-            } else {
-                Imgproc.drawContours(inputRgba, contours, -1, mContourColor, 1);
-            }
-
-            /*Mat colorLabel = inputRgba.submat(4, 68, 4, 68);
-            colorLabel.setTo(mBlobColorRgba);
-
-            Mat spectrumLabel = inputRgba.submat(4, 4 + mSpectrum.rows(), 70, 70 + mSpectrum.cols());
-            mSpectrum.copyTo(spectrumLabel);*/
-        }
-
-        return inputRgba;
+        }, 2000);
     }
 
-    private CvCameraViewListener2 cameraViewListener = new CvCameraViewListener2() {
-        @Override
-        public void onCameraViewStarted(int width, int height) {
-            init(width, height);
+    @Override
+    public void onInteraction(int type, Object obj) {
+        switch (type) {
+            case CLEAR_COLOR_SELECTIONS:
+                clearColorSelections();
+                break;
+            case SHOW_STILL_SCREEN:
+                Bitmap bitmap = (Bitmap) obj;
+                showStillScreen(bitmap);
+                break;
         }
-        @Override
-        public void onCameraViewStopped() {
-            mRgba.release();
-        }
-        @Override
-        public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-            return processCameraFrame(inputFrame.rgba());
-        }
-    };
+    }
 
     private SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            double color = Utility.percentToColorTolerance(progress);
-            Scalar colorRadius = new Scalar(color, 50, 50, 0);
-            Log.i(TAG, "colorRadius: "+color);
-            mDetector.setColorRadius(colorRadius);
-            if (isBlobColorSelected) {
-                mDetector.setHsvColor(mBlobColorHsv);
+            double level = Utility.percentToColorTolerance(progress);
+            if (cameraFragment != null) {
+                cameraFragment.setToleranceLevel(level);
             }
         }
         @Override

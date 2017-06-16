@@ -1,7 +1,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black" >
+    android:background="@color/black"
+    tools:context=".activities.MainActivity" >
 
     <RelativeLayout
         android:id="@+id/viewContainerProductsTray"
@@ -97,27 +99,15 @@
 
     </RelativeLayout>
 
-    <RelativeLayout
-        android:id="@+id/viewContainerCamera"
+    <FrameLayout
+        android:id="@+id/viewContainerFragments"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_toLeftOf="@+id/relativeLayoutRightOptionsContainer"
         android:layout_toRightOf="@+id/linearLayoutLeftOptionsContainer"
         android:orientation="vertical" >
 
-        <com.e2esp.bergerpaints.livevisualizer.views.CameraView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/cameraView" />
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recyclerViewTestSelections"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true" />
-
-    </RelativeLayout>
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/linearLayoutLeftOptionsContainer"
@@ -155,6 +145,13 @@
             android:layout_height="@dimen/color_box_size"
             android:layout_alignParentTop="true"
             android:src="@drawable/color_box" />
+
+        <ImageView
+            android:id="@+id/imageViewTakePicture"
+            android:layout_width="@dimen/color_box_size"
+            android:layout_height="@dimen/color_box_size"
+            android:layout_centerVertical="true"
+            android:src="@drawable/icon_camera" />
 
         <ImageView
             android:id="@+id/imageViewProductColors"
