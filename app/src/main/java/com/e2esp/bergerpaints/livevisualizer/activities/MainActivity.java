@@ -2,6 +2,7 @@ package com.e2esp.bergerpaints.livevisualizer.activities;
 
 import java.util.ArrayList;
 
+import android.app.Dialog;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -16,11 +17,18 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.e2esp.bergerpaints.livevisualizer.R;
@@ -31,6 +39,7 @@ import com.e2esp.bergerpaints.livevisualizer.fragments.StillFragment;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnFragmentInteractionListener;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnTraysColorClickListener;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnTraysProductClickListener;
+import com.e2esp.bergerpaints.livevisualizer.models.Options;
 import com.e2esp.bergerpaints.livevisualizer.models.PrimaryColor;
 import com.e2esp.bergerpaints.livevisualizer.models.ProductColor;
 import com.e2esp.bergerpaints.livevisualizer.models.SecondaryColor;
@@ -61,15 +70,48 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private ArrayList<ProductColor> activeProductColorsList;
     private ProductsTrayRecyclerAdapter productsRecyclerAdapter;
 
+    private Spinner spinnerOptions;
+    private ArrayList<Options> optionsList;
+    private ArrayList<String> optionsNamesList;
+    private ArrayAdapter<String> optionsAdapter;
+
     private ImageButton imageButtonToggleOptions;
-    private LinearLayout linearLayoutLeftOptionsContainer;
-    private RelativeLayout relativeLayoutRightOptionsContainer;
+    private ImageButton imageButtonSaveOptions;
+    private View viewContainerLeftOptions;
+    private View viewContainerRightOptions;
 
     private ImageView imageViewSymphonyColors;
     private ImageView imageViewProductColors;
     private ImageView imageViewTakePicture;
 
-    private VerticalSeekBar seekBarTolerance;
+    private View viewContainerSeekBars;
+    private VerticalSeekBar seekBarHue;
+    private VerticalSeekBar seekBarSat;
+    private VerticalSeekBar seekBarVal;
+
+    private TextView textViewHue;
+    private TextView textViewSat;
+    private TextView textViewVal;
+
+    private View viewContainerModes;
+    private TextView textViewDilate;
+    private TextView textViewDilateSize;
+    private SeekBar seekBarDilate;
+    private SeekBar seekBarDilateSize;
+    private Spinner spinnerStructure;
+    private Spinner spinnerMode;
+    private Spinner spinnerMethod;
+
+    private View viewContainerCannyControls;
+    private TextView textViewKernelSize;
+    private TextView textViewThreshold;
+    private TextView textViewThresholdRatio;
+    private TextView textViewSobelSize;
+    private SeekBar seekBarKernelSize;
+    private SeekBar seekBarThreshold;
+    private SeekBar seekBarThresholdRatio;
+    private SeekBar seekBarSobelSize;
+    private CheckBox checkBoxL2Gradient;
 
     private View viewContainerFragments;
     private CameraFragment cameraFragment;
@@ -80,8 +122,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private Animation animSlideRightIn;
     private Animation animSlideRightOut;
 
-    private boolean optionsVisible = true;
-    private boolean animatingOptions = false;
+    private int visibleOptions;
 
     private boolean colorsTrayVisible;
     private boolean productsTrayVisible;
@@ -136,6 +177,14 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         recyclerViewProductsTray.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         recyclerViewProductsTray.setAdapter(productsRecyclerAdapter);
 
+        spinnerOptions = (Spinner) findViewById(R.id.spinnerOptions);
+        optionsList = new ArrayList<>();
+        optionsNamesList = new ArrayList<>();
+        optionsAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, optionsNamesList);
+        spinnerOptions.setAdapter(optionsAdapter);
+        spinnerOptions.setOnItemSelectedListener(optionSelectedListener);
+        updateOptionsList();
+
         imageButtonToggleOptions = (ImageButton) findViewById(R.id.imageButtonToggleOptions);
         imageButtonToggleOptions.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -144,8 +193,16 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
             }
         });
 
-        linearLayoutLeftOptionsContainer = (LinearLayout) findViewById(R.id.linearLayoutLeftOptionsContainer);
-        relativeLayoutRightOptionsContainer = (RelativeLayout) findViewById(R.id.relativeLayoutRightOptionsContainer);
+        imageButtonSaveOptions = (ImageButton) findViewById(R.id.imageButtonSaveOptions);
+        imageButtonSaveOptions.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveOptions();
+            }
+        });
+
+        viewContainerLeftOptions = findViewById(R.id.viewContainerLeftOptions);
+        viewContainerRightOptions = findViewById(R.id.viewContainerRightOptions);
 
         imageViewSymphonyColors = (ImageView) findViewById(R.id.imageViewSymphonyColors);
         imageViewSymphonyColors.setOnClickListener(new View.OnClickListener() {
@@ -174,17 +231,102 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         imageViewTakePicture.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (cameraFragment != null) {
+                if (visibleFragmentIndex == FRAGMENT_INDEX_CAMERA && cameraFragment != null) {
                     cameraFragment.takePicture();
+                } else if (visibleFragmentIndex == FRAGMENT_INDEX_STILL && stillFragment != null) {
+                    stillFragment.saveImage(currentSelectionsToOptions());
                 }
             }
         });
 
         viewContainerFragments = findViewById(R.id.viewContainerFragments);
+        viewContainerSeekBars = findViewById(R.id.viewContainerSeekBars);
 
-        seekBarTolerance = (VerticalSeekBar) findViewById(R.id.seekBarTolerance);
-        seekBarTolerance.setProgress(Utility.colorToPercentTolerance(40));
-        seekBarTolerance.setOnSeekBarChangeListener(seekBarChangeListener);
+        seekBarHue = (VerticalSeekBar) findViewById(R.id.seekBarHue);
+        seekBarHue.setProgress(Utility.colorToPercentTolerance(40, 360));
+        seekBarHue.setTag(0);
+        seekBarHue.setOnSeekBarChangeListener(toleranceChangeListener);
+
+        seekBarSat = (VerticalSeekBar) findViewById(R.id.seekBarSat);
+        seekBarSat.setProgress(Utility.colorToPercentTolerance(50, 255));
+        seekBarSat.setTag(1);
+        seekBarSat.setOnSeekBarChangeListener(toleranceChangeListener);
+
+        seekBarVal = (VerticalSeekBar) findViewById(R.id.seekBarVal);
+        seekBarVal.setProgress(Utility.colorToPercentTolerance(50, 255));
+        seekBarVal.setTag(2);
+        seekBarVal.setOnSeekBarChangeListener(toleranceChangeListener);
+
+        textViewHue = (TextView) findViewById(R.id.textViewHue);
+        textViewSat = (TextView) findViewById(R.id.textViewSat);
+        textViewVal = (TextView) findViewById(R.id.textViewVal);
+
+        textViewHue.setText("H:40");
+        textViewSat.setText("S:50");
+        textViewVal.setText("V:50");
+
+        viewContainerModes = findViewById(R.id.viewContainerModes);
+
+        seekBarDilate = (SeekBar) findViewById(R.id.seekBarDilate);
+        seekBarDilate.setProgress(1);
+        seekBarDilate.setTag(0);
+        seekBarDilate.setOnSeekBarChangeListener(dilateChangeListener);
+        seekBarDilateSize = (SeekBar) findViewById(R.id.seekBarDilateSize);
+        seekBarDilateSize.setProgress(2);
+        seekBarDilateSize.setTag(1);
+        seekBarDilateSize.setOnSeekBarChangeListener(dilateChangeListener);
+
+        textViewDilate = (TextView) findViewById(R.id.textViewDilate);
+        textViewDilateSize = (TextView) findViewById(R.id.textViewDilateSize);
+
+        textViewDilate.setText(getString(R.string.dilate)+": 1");
+        textViewDilateSize.setText(getString(R.string.size)+": 3");
+
+        spinnerStructure = (Spinner) findViewById(R.id.spinnerStructure);
+        spinnerStructure.setAdapter(new ArrayAdapter<>(this, R.layout.spinner_item, new String[]{"RECT", "CROSS", "ELLIPSE"}));
+        spinnerStructure.setTag(0);
+        spinnerStructure.setOnItemSelectedListener(modeSelectedListener);
+        spinnerMode = (Spinner) findViewById(R.id.spinnerMode);
+        spinnerMode.setAdapter(new ArrayAdapter<>(this, R.layout.spinner_item, new String[]{"EXTERNAL", "LIST", "CCOMP", "TREE", "FLOODFILL"}));
+        spinnerMode.setTag(1);
+        spinnerMode.setOnItemSelectedListener(modeSelectedListener);
+        spinnerMethod = (Spinner) findViewById(R.id.spinnerMethod);
+        spinnerMethod.setAdapter(new ArrayAdapter<>(this, R.layout.spinner_item, new String[]{"NONE", "SIMPLE", "TC89_L1", "TC89_KCOS"}));
+        spinnerMethod.setSelection(1);
+        spinnerMethod.setTag(2);
+        spinnerMethod.setOnItemSelectedListener(modeSelectedListener);
+
+        viewContainerCannyControls = findViewById(R.id.viewContainerCannyControls);
+
+        seekBarKernelSize = (SeekBar) findViewById(R.id.seekBarKernelSize);
+        seekBarKernelSize.setProgress(2);
+        seekBarKernelSize.setTag(0);
+        seekBarKernelSize.setOnSeekBarChangeListener(cannyChangeListener);
+        seekBarThreshold = (SeekBar) findViewById(R.id.seekBarThreshold);
+        seekBarThreshold.setProgress(49);
+        seekBarThreshold.setTag(1);
+        seekBarThreshold.setOnSeekBarChangeListener(cannyChangeListener);
+        seekBarThresholdRatio = (SeekBar) findViewById(R.id.seekBarThresholdRatio);
+        seekBarThresholdRatio.setProgress(99);
+        seekBarThresholdRatio.setTag(2);
+        seekBarThresholdRatio.setOnSeekBarChangeListener(cannyChangeListener);
+        seekBarSobelSize = (SeekBar) findViewById(R.id.seekBarSobelSize);
+        seekBarSobelSize.setProgress(0);
+        seekBarSobelSize.setTag(3);
+        seekBarSobelSize.setOnSeekBarChangeListener(cannyChangeListener);
+
+        textViewKernelSize = (TextView) findViewById(R.id.textViewKernelSize);
+        textViewThreshold = (TextView) findViewById(R.id.textViewThreshold);
+        textViewThresholdRatio = (TextView) findViewById(R.id.textViewThresholdRatio);
+        textViewSobelSize = (TextView) findViewById(R.id.textViewSobelSize);
+
+        textViewKernelSize.setText(getString(R.string.kernel_size)+ ": 3");
+        textViewThreshold.setText(getString(R.string.threshold)+ ": 50");
+        textViewThresholdRatio.setText(getString(R.string.threshold_ratio)+ ": 3.0");
+        textViewSobelSize.setText(getString(R.string.sobel_size)+ ": 3");
+
+        checkBoxL2Gradient = (CheckBox) findViewById(R.id.checkBoxL2Gradient);
+        checkBoxL2Gradient.setOnCheckedChangeListener(checkedChangeListener);
     }
 
     private void initAnimations() {
@@ -195,25 +337,82 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     }
 
     private void toggleOptions() {
-        if (animatingOptions) {
-            return;
+        visibleOptions++;
+        if (visibleOptions >= 3) {
+            visibleOptions = 0;
         }
-        animatingOptions = true;
-        if (optionsVisible) {
-            seekBarTolerance.startAnimation(animSlideLeftOut);
-            relativeLayoutRightOptionsContainer.startAnimation(animSlideRightOut);
-        } else {
-            seekBarTolerance.startAnimation(animSlideRightIn);
-            relativeLayoutRightOptionsContainer.startAnimation(animSlideLeftIn);
+        switch (visibleOptions) {
+            case 0:
+                viewContainerSeekBars.setVisibility(View.VISIBLE);
+                viewContainerModes.setVisibility(View.GONE);
+                viewContainerCannyControls.setVisibility(View.GONE);
+                break;
+            case 1:
+                viewContainerSeekBars.setVisibility(View.GONE);
+                viewContainerModes.setVisibility(View.VISIBLE);
+                viewContainerCannyControls.setVisibility(View.GONE);
+                break;
+            case 2:
+                viewContainerSeekBars.setVisibility(View.GONE);
+                viewContainerModes.setVisibility(View.GONE);
+                viewContainerCannyControls.setVisibility(View.VISIBLE);
+                break;
         }
-        new Handler().postDelayed(new Runnable() {
+        if (cameraFragment != null) {
+            cameraFragment.doingCanny = visibleOptions == 2;
+        }
+    }
+
+    private Options currentSelectionsToOptions() {
+        int h = seekBarHue.getProgress();
+        int s = seekBarSat.getProgress();
+        int v = seekBarVal.getProgress();
+        int dl = seekBarDilate.getProgress();
+        int st = spinnerStructure.getSelectedItemPosition();
+        int sz = seekBarDilateSize.getProgress();
+        int md = spinnerMode.getSelectedItemPosition();
+        int mt = spinnerMethod.getSelectedItemPosition();
+        return new Options(h, s, v, dl, st, sz, md, mt);
+    }
+
+    private void saveOptions() {
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_save);
+
+        TextView textView = (TextView) dialog.findViewById(R.id.textViewSave);
+        final EditText editText = (EditText) dialog.findViewById(R.id.editTextSave);
+        Button button = (Button) dialog.findViewById(R.id.buttonSave);
+
+        final Options options = currentSelectionsToOptions();
+        textView.setText(options.getTextToShow());
+        button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void run() {
-                optionsVisible = !optionsVisible;
-                animatingOptions = false;
-                imageButtonToggleOptions.setImageResource(optionsVisible ? R.drawable.arrows_left : R.drawable.arrows_right);
+            public void onClick(View v) {
+                String name = editText.getText().toString();
+                if (name.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Enter name first", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                name = name.replaceAll("_", " ");
+                options.setName(name);
+                Utility.saveOptions(MainActivity.this, options);
+                updateOptionsList();
+                dialog.dismiss();
             }
-        }, 500);
+        });
+
+        dialog.show();
+    }
+
+    private void updateOptionsList() {
+        optionsList = Utility.loadOptions(this);
+        optionsNamesList.clear();
+        for (int i = optionsList.size() - 1; i >= 0; i--) {
+            optionsNamesList.add(optionsList.get(i).getName());
+        }
+        optionsAdapter.notifyDataSetChanged();
+        spinnerOptions.setVisibility(optionsNamesList.size() > 0 ? View.VISIBLE : View.GONE);
     }
 
     private CameraFragment getCameraFragment() {
@@ -234,11 +433,13 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         switch (index) {
             case FRAGMENT_INDEX_CAMERA:
                 getSupportFragmentManager().beginTransaction().replace(R.id.viewContainerFragments, getCameraFragment()).commit();
-                imageViewTakePicture.setVisibility(View.VISIBLE);
+                viewContainerLeftOptions.setVisibility(View.VISIBLE);
+                imageViewTakePicture.setImageResource(R.drawable.icon_camera);
                 break;
             case FRAGMENT_INDEX_STILL:
                 getSupportFragmentManager().beginTransaction().replace(R.id.viewContainerFragments, getStillFragment()).commit();
-                imageViewTakePicture.setVisibility(View.INVISIBLE);
+                viewContainerLeftOptions.setVisibility(View.INVISIBLE);
+                imageViewTakePicture.setImageResource(R.drawable.icon_save);
                 break;
         }
         visibleFragmentIndex = index;
@@ -800,8 +1001,8 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         textViewShadesOfColor.setText("");
         linearLayoutSecondaryColorsTrayContainer.removeAllViews();
         viewContainerFragments.bringToFront();
-        linearLayoutLeftOptionsContainer.bringToFront();
-        relativeLayoutRightOptionsContainer.bringToFront();
+        viewContainerLeftOptions.bringToFront();
+        viewContainerRightOptions.bringToFront();
     }
 
     private void setupProductsTray() {
@@ -1104,8 +1305,8 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         textViewColorsOfProduct.setText("");
         linearLayoutProductColorsTrayContainer.removeAllViews();
         viewContainerFragments.bringToFront();
-        linearLayoutLeftOptionsContainer.bringToFront();
-        relativeLayoutRightOptionsContainer.bringToFront();
+        viewContainerLeftOptions.bringToFront();
+        viewContainerRightOptions.bringToFront();
     }
 
     private void showSecondaryColorsTray(PrimaryColor color) {
@@ -1307,12 +1508,24 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         }
     }
 
-    private SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
+    private SeekBar.OnSeekBarChangeListener toleranceChangeListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            double level = Utility.percentToColorTolerance(progress);
+            int tag = (int) seekBar.getTag();
+            double level = Utility.percentToColorTolerance(progress, tag == 0 ? 360 : 255);
             if (cameraFragment != null) {
-                cameraFragment.setToleranceLevel(level);
+                cameraFragment.setToleranceLevel(tag, level);
+                switch (tag) {
+                    case 0:
+                        textViewHue.setText("H:"+(int)level);
+                        break;
+                    case 1:
+                        textViewSat.setText("S:"+(int)level);
+                        break;
+                    case 2:
+                        textViewVal.setText("V:"+(int)level);
+                        break;
+                }
             }
         }
         @Override
@@ -1320,6 +1533,114 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         }
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
+        }
+    };
+
+    private SeekBar.OnSeekBarChangeListener dilateChangeListener = new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            int tag = (int) seekBar.getTag();
+            if (cameraFragment != null) {
+                switch (tag) {
+                    case 0:
+                        cameraFragment.setModes(progress, -1, -1, -1, -1);
+                        textViewDilate.setText(getString(R.string.dilate)+": "+(progress==0?"None":progress));
+                        break;
+                    case 1:
+                        cameraFragment.setModes(-1, -1, progress+1, -1, -1);
+                        textViewDilateSize.setText(getString(R.string.size)+": "+(progress+1));
+                        break;
+                }
+            }
+        }
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+        }
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+        }
+    };
+
+    private SeekBar.OnSeekBarChangeListener cannyChangeListener = new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            int tag = (int) seekBar.getTag();
+            if (cameraFragment != null) {
+                switch (tag) {
+                    case 0:
+                        cameraFragment.setCannyControls(progress + 1, -1, -1, -1, checkBoxL2Gradient.isChecked());
+                        textViewKernelSize.setText(getString(R.string.kernel_size)+": "+(progress+1));
+                        break;
+                    case 1:
+                        cameraFragment.setCannyControls(-1, progress + 1, -1, -1, checkBoxL2Gradient.isChecked());
+                        textViewThreshold.setText(getString(R.string.threshold)+": "+(progress+1));
+                        break;
+                    case 2:
+                        double ratio = ((double) progress + 1) * 0.01 + 2;
+                        cameraFragment.setCannyControls(-1, -1, ratio, -1, checkBoxL2Gradient.isChecked());
+                        textViewThresholdRatio.setText(getString(R.string.threshold_ratio)+": "+ratio);
+                        break;
+                    case 3:
+                        int sobel = progress * 2 + 3;
+                        cameraFragment.setCannyControls(-1, -1, -1, sobel, checkBoxL2Gradient.isChecked());
+                        textViewSobelSize.setText(getString(R.string.sobel_size)+": "+sobel);
+                        break;
+                }
+            }
+        }
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+        }
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+        }
+    };
+
+    private AdapterView.OnItemSelectedListener modeSelectedListener = new AdapterView.OnItemSelectedListener() {
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            int tag = (int) parent.getTag();
+            if (cameraFragment != null) {
+                switch (tag) {
+                    case 0:
+                        cameraFragment.setModes(-1, position, -1, -1, -1);
+                        break;
+                    case 1:
+                        cameraFragment.setModes(-1, -1, -1, position, -1);
+                        break;
+                    case 2:
+                        cameraFragment.setModes(-1, -1, -1, -1, position+1);
+                        break;
+                }
+            }
+        }
+        @Override
+        public void onNothingSelected(AdapterView<?> parent) {
+        }
+    };
+
+    private AdapterView.OnItemSelectedListener optionSelectedListener = new AdapterView.OnItemSelectedListener() {
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            Options options = optionsList.get(optionsList.size() - position - 1);
+            seekBarHue.setProgress(options.getHue());
+            seekBarSat.setProgress(options.getSat());
+            seekBarVal.setProgress(options.getVal());
+            seekBarDilate.setProgress(options.getDilate());
+            spinnerStructure.setSelection(options.getStructure());
+            seekBarDilateSize.setProgress(options.getSize());
+            spinnerMode.setSelection(options.getMode());
+            spinnerMethod.setSelection(options.getMethod());
+        }
+        @Override
+        public void onNothingSelected(AdapterView<?> parent) {
+        }
+    };
+
+    private CompoundButton.OnCheckedChangeListener checkedChangeListener = new CompoundButton.OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            cameraFragment.setCannyControls(-1, -1, -1, -1, isChecked);
         }
     };
 

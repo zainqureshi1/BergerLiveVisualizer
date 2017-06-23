@@ -9,6 +9,21 @@
 
     <string name="product_name">Product Name</string>
 
+    <string name="dilate">Dilate</string>
+    <string name="structure">Structure</string>
+    <string name="size">Size</string>
+    <string name="mode">Mode</string>
+    <string name="method">Method</string>
+
+    <string name="kernel_size">Kernel Size</string>
+    <string name="threshold">Threshold</string>
+    <string name="threshold_ratio">Threshold Ratio</string>
+    <string name="sobel_size">Sobel Size</string>
+    <string name="l2_gradient">L2 Gradient</string>
+
+    <string name="enter_a_name">Enter a name</string>
+    <string name="save">Save</string>
+
     <string name="press_back_again_to_exit">Press BACK again to exit</string>
 
 </resources>

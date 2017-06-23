@@ -64,8 +64,8 @@ public class DrawingView extends View {
         super.onDraw(canvas);
 
         canvas.drawBitmap(mBitmap, 0, 0, mBitmapPaint);
-        canvas.drawPath(mPath, mPaint);
-        canvas.drawPath(circlePath, circlePaint);
+        //canvas.drawPath(mPath, mPaint);
+        //canvas.drawPath(circlePath, circlePaint);
     }
 
     private float mX, mY;

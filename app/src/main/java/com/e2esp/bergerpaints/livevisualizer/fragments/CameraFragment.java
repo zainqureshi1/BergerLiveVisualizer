@@ -11,7 +11,8 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.e2esp.bergerpaints.livevisualizer.ColorBlobDetector;
+import com.e2esp.bergerpaints.livevisualizer.detectors.CannyEdgeDetector;
+import com.e2esp.bergerpaints.livevisualizer.detectors.ColorBlobDetector;
 import com.e2esp.bergerpaints.livevisualizer.R;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnFragmentInteractionListener;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
@@ -30,6 +31,7 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -52,10 +54,12 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
     private Scalar mBlobColorRgba;
     private Scalar mBlobColorHsv;
     private ColorBlobDetector mDetector;
+    private CannyEdgeDetector mCannyDetector;
     private Scalar mContourColor;
     private Scalar mFillColorRgb;
     private Scalar mFillColorHsv;
 
+    public boolean doingCanny;
     private boolean takePicture;
 
     private CameraView cameraView;
@@ -107,6 +111,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         mRgba = new Mat(cameraHeight, cameraWidth, CvType.CV_8UC4);
         mTouchedRect = new Rect();
         mDetector = new ColorBlobDetector();
+        mCannyDetector = new CannyEdgeDetector();
         mBlobColorRgba = new Scalar(255);
         mBlobColorHsv = new Scalar(255);
         mContourColor = new Scalar(255, 0, 0, 255);
@@ -303,18 +308,66 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         isFillColorSelected = true;
     }
 
-    public void setToleranceLevel(double level) {
-        double hue = level / 255 * 360;
-        Scalar colorRadius = new Scalar(hue, 50, 50, 0);
-        Log.i(TAG, "colorRadius: "+level);
-        mDetector.setColorRadius(colorRadius);
+    public void setToleranceLevel(int channel, double level) {
+        switch (channel) {
+            case 0:
+                Log.i(TAG, "Tolerance Hue: "+level);
+                mDetector.setColorRadius(level, -1, -1, -1);
+                break;
+            case 1:
+                Log.i(TAG, "Tolerance Sat: "+level);
+                mDetector.setColorRadius(-1, level, -1, -1);
+                break;
+            case 2:
+                Log.i(TAG, "Tolerance Val: "+level);
+                mDetector.setColorRadius(-1, -1, level, -1);
+                break;
+        }
         if (isBlobColorSelected) {
             mDetector.setHsvColor(mBlobColorHsv);
         }
     }
 
+    public void setModes(int dilate, int structure, int dilateSize, int mode, int method) {
+        if (dilate != -1) {
+            mDetector.mDilationIterations = dilate;
+        }
+        if (structure != -1) {
+            mDetector.mStructure = structure;
+        }
+        if (dilateSize != -1) {
+            mDetector.mDilationSize = dilateSize;
+        }
+        if (mode != -1) {
+            mDetector.mContourMode = mode;
+        }
+        if (method != -1) {
+            mDetector.mContourMethod = method;
+        }
+    }
+
+    public void setCannyControls(int kernelSize, int threshold, double thresholdRatio, int sobelSize, boolean l2Gradient) {
+        if (kernelSize != -1) {
+            mCannyDetector.mKernelSize = kernelSize;
+        }
+        if (threshold != -1) {
+            mCannyDetector.mThreshold = threshold;
+        }
+        if (thresholdRatio != -1) {
+            mCannyDetector.mRatio = thresholdRatio;
+        }
+        if (sobelSize != -1) {
+            mCannyDetector.mSobel = sobelSize;
+        }
+        mCannyDetector.mL2 = l2Gradient;
+    }
+
     private Mat processCameraFrame(Mat inputRgba) {
         mRgba = inputRgba;
+
+        if (doingCanny) {
+            return mCannyDetector.process(inputRgba);
+        }
 
         if (isBlobColorSelected) {
             if (mDetector.shouldUpdate() && !takePicture) {
@@ -332,15 +385,44 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
             //Log.i(TAG, "Contours count: " + contours.size());
             if (isFillColorSelected) {
                 Log.i(TAG, "mFillColorHsv: "+mFillColorHsv);
-                Imgproc.drawContours(inputRgba, contours, -1, mFillColorRgb, -1);
 
-                /*Mat hsv = new Mat();
-                Imgproc.cvtColor(inputRgba, hsv, Imgproc.COLOR_RGB2HSV);
+                Mat orgHsv = new Mat();
+                Imgproc.cvtColor(inputRgba, orgHsv, Imgproc.COLOR_RGB2HSV);
 
                 List<Mat> channels = new ArrayList<>();
-                Core.split(hsv, channels);
+                Core.split(orgHsv, channels);
+                orgHsv.release();
 
-                Imgproc.drawContours(hsv, contours, -1, new Scalar(mFillColorHsv.val[0]), -1);
+                Imgproc.drawContours(inputRgba, contours, -1, mFillColorRgb, -1);
+                Mat conHsv = new Mat();
+                Imgproc.cvtColor(inputRgba, conHsv, Imgproc.COLOR_RGB2HSV);
+
+                Mat mask = new Mat();
+                Core.inRange(conHsv, mFillColorHsv, mFillColorHsv, mask);
+                conHsv.release();
+
+                List<Mat> hsChannels = new ArrayList<>();
+                hsChannels.add(channels.get(0));
+                hsChannels.add(channels.get(1));
+                Mat newHsv = new Mat();
+                Core.merge(hsChannels, newHsv);
+
+                newHsv.setTo(new Scalar(mFillColorHsv.val[0], mFillColorHsv.val[1]), mask);
+                Core.split(newHsv, hsChannels);
+
+                channels.set(0, hsChannels.get(0));
+                channels.set(1, hsChannels.get(1));
+
+                Mat destHsv = new Mat();
+                Core.merge(channels, destHsv);
+                for (Mat channel : channels) {
+                    channel.release();
+                }
+
+                Imgproc.cvtColor(destHsv, inputRgba, Imgproc.COLOR_HSV2RGB);
+                destHsv.release();
+
+                /*Imgproc.drawContours(hsv, contours, -1, new Scalar(mFillColorHsv.val[0]), -1);
 
                 Point touchPoint = touchPoint();*/
 
