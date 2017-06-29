@@ -25,10 +25,10 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
@@ -176,7 +176,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         mTouchedRect.height = (y + 4 < rows) ? y + 4 - mTouchedRect.y : rows - mTouchedRect.y;
 
         isBlobColorSelected = true;
-        isFillColorSelected = false;
+        //isFillColorSelected = false;
 
         onFragmentInteractionListener.onInteraction(OnFragmentInteractionListener.CLEAR_COLOR_SELECTIONS, null);
 
@@ -211,26 +211,30 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         return new Point(mTouchedRect.x + mTouchedRect.width / 2, mTouchedRect.y + mTouchedRect.height / 2);
     }
 
-    private Mat floodFill(Mat img, Point seedPoint, Scalar newVal)
-    {
-        Mat clone = img.clone();
+    private Mat floodFill(Mat img, Point seedPoint) {
+        //Mat clone = img.clone();
 
-        Mat mask = Mat.zeros(img.rows() + 2, img.cols() + 2, CvType.CV_8U);
-        double newHue = newVal.val[0];
-        Imgproc.floodFill(img, mask, seedPoint, new Scalar(newHue), new Rect(), new Scalar(10), new Scalar(10), 8 + Imgproc.FLOODFILL_FIXED_RANGE);//, 4 + (255 << 8) + Imgproc.FLOODFILL_MASK_ONLY);
+        Mat floodFilled = Mat.zeros(img.rows() + 2, img.cols() + 2, CvType.CV_8U);
+        double diffH = mDetector.mColorRadius.val[0]*0.5;
+        double diffS = mDetector.mColorRadius.val[1]*0.5;
+        double diffV = mDetector.mColorRadius.val[2]*0.5;
+        Imgproc.floodFill(img, floodFilled, seedPoint, new Scalar(255), new Rect(), new Scalar(diffH, diffS, diffV), new Scalar(diffH, diffS, diffV), 8 + (255 << 8) + Imgproc.FLOODFILL_MASK_ONLY);
 
-        //Core.subtract(floodfilled, Scalar.all(0), floodfilled);
+        Core.subtract(floodFilled, Scalar.all(0), floodFilled);
 
-        //Rect roi = new Rect(1, 1, img.cols(), img.rows());
-        //Mat result = new Mat();
-        //floodfilled.submat(roi).copyTo(result);
+        Rect roi = new Rect(1, 1, img.cols(), img.rows());
+        Mat result = new Mat();
+        floodFilled.submat(roi).copyTo(result);
+        floodFilled.release();
 
-        Mat diff = new Mat();
+        /*Mat diff = new Mat();
         Core.subtract(img, clone, diff);
         int nz = Core.countNonZero(diff);
         Log.i(TAG, "clonedDiff :: rows:"+diff.rows()+" cols:"+diff.cols()+" nz:"+nz);
+        diff.release();
+        clone.release();*/
 
-        return img;
+        return result;
     }
 
     private void floodFill1(Mat img, int channel, double newValue, Point seedPoint, double variation) {
@@ -285,6 +289,8 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         Core.subtract(img, clone, diff);
         int nz = Core.countNonZero(diff);
         Log.i(TAG, "clonedDiff :: rows:"+diff.rows()+" cols:"+diff.cols()+" nz:"+nz);
+        diff.release();
+        clone.release();
     }
 
     private boolean setIfInRange(Mat img, int channel, double newValue, Point point, double loLimit, double hiLimit) {
@@ -369,7 +375,55 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
             return mCannyDetector.process(inputRgba);
         }
 
-        if (isBlobColorSelected) {
+        if (isBlobColorSelected && isFillColorSelected && mDetector.shouldUpdate() && !takePicture) {
+            // Convert RGBA To HSV
+            Mat orgHsv = new Mat();
+            Imgproc.cvtColor(inputRgba, orgHsv, Imgproc.COLOR_RGB2HSV);
+
+            // Apply FloodFill to find matching area
+            Point touchPoint = touchPoint();
+            Mat mask = floodFill(orgHsv, touchPoint);
+
+            // Apply Dilate to fill gaps
+            Mat element = Imgproc.getStructuringElement(mDetector.mStructure, new Size(2 * mDetector.mDilationSize + 1, 2 * mDetector.mDilationSize + 1));
+            for (int i = 0; i < mDetector.mDilationIterations; i++) {
+                Imgproc.dilate(mask, mask, element);
+            }
+            element.release();
+
+            // Split image into HSV channels
+            List<Mat> channels = new ArrayList<>();
+            Core.split(orgHsv, channels);
+            orgHsv.release();
+
+            // Separate H and S channels into separate Mat
+            List<Mat> hsChannels = new ArrayList<>();
+            hsChannels.add(channels.get(0));
+            hsChannels.add(channels.get(1));
+            Mat newHsv = new Mat();
+            Core.merge(hsChannels, newHsv);
+
+            // Set H and S channels to Fill Color using FloodFill mask
+            newHsv.setTo(new Scalar(mFillColorHsv.val[0], mFillColorHsv.val[1]), mask);
+            mask.release();
+            Core.split(newHsv, hsChannels);
+            newHsv.release();
+
+            // Merge new H, S and old V channels into single Mat
+            channels.set(0, hsChannels.get(0));
+            channels.set(1, hsChannels.get(1));
+            Mat destHsv = new Mat();
+            Core.merge(channels, destHsv);
+            for (Mat channel : channels) {
+                channel.release();
+            }
+
+            // Convert HSV back to RGB
+            Imgproc.cvtColor(destHsv, inputRgba, Imgproc.COLOR_HSV2RGB);
+            destHsv.release();
+        }
+
+        /*if (isBlobColorSelected) {
             if (mDetector.shouldUpdate() && !takePicture) {
                 Scalar blobColorHsv = calculateBlobColorHsv();
                 if (!mBlobColorHsv.equals(blobColorHsv)) {
@@ -389,17 +443,30 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
                 Mat orgHsv = new Mat();
                 Imgproc.cvtColor(inputRgba, orgHsv, Imgproc.COLOR_RGB2HSV);
 
+                Point touchPoint = touchPoint();
+                Mat mask = floodFill(orgHsv, touchPoint);
+
+                Mat element = Imgproc.getStructuringElement(mDetector.mStructure, new Size(2 * mDetector.mDilationSize + 1, 2 * mDetector.mDilationSize + 1));
+                for (int i = 0; i < mDetector.mDilationIterations; i++) {
+                    Imgproc.dilate(mask, mask, element);
+                }
+                element.release();
+
                 List<Mat> channels = new ArrayList<>();
                 Core.split(orgHsv, channels);
                 orgHsv.release();
 
-                Imgproc.drawContours(inputRgba, contours, -1, mFillColorRgb, -1);
+                *//*Mat mask = new Mat();
+                Core.inRange(floodFilled, mFillColorHsv, mFillColorHsv, mask);
+                floodFilled.release();*//*
+
+                *//*Imgproc.drawContours(inputRgba, contours, -1, mFillColorRgb, -1);
                 Mat conHsv = new Mat();
                 Imgproc.cvtColor(inputRgba, conHsv, Imgproc.COLOR_RGB2HSV);
 
                 Mat mask = new Mat();
                 Core.inRange(conHsv, mFillColorHsv, mFillColorHsv, mask);
-                conHsv.release();
+                conHsv.release();*//*
 
                 List<Mat> hsChannels = new ArrayList<>();
                 hsChannels.add(channels.get(0));
@@ -408,7 +475,9 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
                 Core.merge(hsChannels, newHsv);
 
                 newHsv.setTo(new Scalar(mFillColorHsv.val[0], mFillColorHsv.val[1]), mask);
+                mask.release();
                 Core.split(newHsv, hsChannels);
+                newHsv.release();
 
                 channels.set(0, hsChannels.get(0));
                 channels.set(1, hsChannels.get(1));
@@ -422,11 +491,11 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
                 Imgproc.cvtColor(destHsv, inputRgba, Imgproc.COLOR_HSV2RGB);
                 destHsv.release();
 
-                /*Imgproc.drawContours(hsv, contours, -1, new Scalar(mFillColorHsv.val[0]), -1);
+                *//*Imgproc.drawContours(hsv, contours, -1, new Scalar(mFillColorHsv.val[0]), -1);
 
-                Point touchPoint = touchPoint();*/
+                Point touchPoint = touchPoint();*//*
 
-                /*List<Mat> channels = new ArrayList<>();
+                *//*List<Mat> channels = new ArrayList<>();
                 Core.split(hsv, channels);
 
                 Log.i(TAG, "FloodFill: before: Src: "+channels.get(0));
@@ -463,13 +532,13 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
                 int q3z = perQ - Core.countNonZero(q3);
                 int q4z = perQ - Core.countNonZero(q4);
                 Log.i(TAG, "Difference Hue rows: "+rows+" cols: "+cols+" perQ: "+perQ);
-                Log.i(TAG, "Difference Hue q1z: "+q1z+" q2z: "+q2z+" q3z: "+q3z+" q4z: "+q4z);*/
+                Log.i(TAG, "Difference Hue q1z: "+q1z+" q2z: "+q2z+" q3z: "+q3z+" q4z: "+q4z);*//*
 
                 //Imgproc.cvtColor(hsv, inputRgba, Imgproc.COLOR_HSV2RGB);
             } else if (!takePicture) {
                 Imgproc.drawContours(inputRgba, contours, -1, mContourColor, 1);
             }
-        }
+        }*/
 
         if (takePicture) {
             takePicture = false;

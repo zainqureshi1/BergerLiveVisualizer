@@ -27,11 +27,11 @@ public class CannyEdgeDetector {
 
         Imgproc.Canny(mEdgesMat, mEdgesMat, mThreshold, mThreshold * mRatio, mSobel, mL2);
 
-        Mat dest = new Mat();
+        /*Mat dest = new Mat();
         Core.add(dest, Scalar.all(0), dest);
 
-        rgbaImage.copyTo(dest, mEdgesMat);
-        return dest;
+        rgbaImage.copyTo(dest, mEdgesMat);*/
+        return mEdgesMat;
     }
 
 }

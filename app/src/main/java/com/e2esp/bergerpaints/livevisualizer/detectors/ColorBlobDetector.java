@@ -24,7 +24,7 @@ public class ColorBlobDetector {
     private Scalar mLowerBound = new Scalar(0);
     private Scalar mUpperBound = new Scalar(0);
     // Color radius for range checking in HSV color space
-    private Scalar mColorRadius = new Scalar(50, 50, 50, 0);
+    public Scalar mColorRadius = new Scalar(50, 50, 50, 0);
     private List<MatOfPoint> mContours = new ArrayList<>();
 
     // Minimum contour area in percent for contours filtering
@@ -97,6 +97,7 @@ public class ColorBlobDetector {
         for (int i = 0; i < mDilationIterations; i++) {
             Imgproc.dilate(mMask, mMask, element);
         }
+        element.release();
         //Log.i(TAG, "Dilated Mask: "+mDilatedMasks.get(maskCount).dump());
         //Core.hconcat(mDilatedMasks, mDilatedMask);
         //Log.i(TAG, "Combined Mask: "+mDilatedMask.dump());
@@ -161,6 +162,9 @@ public class ColorBlobDetector {
             }
             lastIteration = thisIteration.clone();
         }
+        kernel.release();
+        eroded.release();
+        lastIteration.release();
 
         return thisIteration;
     }
@@ -177,6 +181,7 @@ public class ColorBlobDetector {
         Mat diff = new Mat();
         Core.compare(mat1, mat2, diff, Core.CMP_NE);
         int nz = Core.countNonZero(diff);
+        diff.release();
         return nz == 0;
     }
 
@@ -214,6 +219,7 @@ public class ColorBlobDetector {
                 }
             }
         }
+        mask.release();
         float result = ((float)matches)/((float)(rows*cols));
         return result > 0.5f;
     }

@@ -287,7 +287,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         spinnerStructure.setTag(0);
         spinnerStructure.setOnItemSelectedListener(modeSelectedListener);
         spinnerMode = (Spinner) findViewById(R.id.spinnerMode);
-        spinnerMode.setAdapter(new ArrayAdapter<>(this, R.layout.spinner_item, new String[]{"EXTERNAL", "LIST", "CCOMP", "TREE", "FLOODFILL"}));
+        spinnerMode.setAdapter(new ArrayAdapter<>(this, R.layout.spinner_item, new String[]{"EXTERNAL", "LIST", "CCOMP", "TREE"}));
         spinnerMode.setTag(1);
         spinnerMode.setOnItemSelectedListener(modeSelectedListener);
         spinnerMethod = (Spinner) findViewById(R.id.spinnerMethod);
