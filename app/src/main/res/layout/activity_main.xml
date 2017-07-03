@@ -126,9 +126,9 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginRight="@dimen/margin_small"
                 android:layout_weight=".5"
                 android:gravity="center"
-                android:layout_marginRight="@dimen/margin_small"
                 android:orientation="horizontal">
 
                 <ImageButton
@@ -171,87 +171,86 @@
             android:layout_height="match_parent"
             android:orientation="horizontal">
 
-            <LinearLayout
-                android:id="@+id/viewContainerSeekBars"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/textViewHue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/white"
-                        android:textSize="@dimen/text_size_small" />
-
-                    <com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar
-                        android:id="@+id/seekBarHue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:layout_margin="@dimen/margin_tiny" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/textViewSat"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/white"
-                        android:textSize="@dimen/text_size_small" />
-
-                    <com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar
-                        android:id="@+id/seekBarSat"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:layout_margin="@dimen/margin_tiny" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/textViewVal"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/white"
-                        android:textSize="@dimen/text_size_small" />
-
-                    <com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar
-                        android:id="@+id/seekBarVal"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:layout_margin="@dimen/margin_tiny" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
             <ScrollView
-                android:id="@+id/viewContainerModes"
+                android:id="@+id/viewContainerGeneralControls"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:visibility="gone">
+                android:layout_height="match_parent">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/viewContainerSeekBars"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/seek_bars_height"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/textViewHue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/white"
+                                android:textSize="@dimen/text_size_small" />
+
+                            <com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar
+                                android:id="@+id/seekBarHue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:layout_margin="@dimen/margin_tiny" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/textViewSat"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/white"
+                                android:textSize="@dimen/text_size_small" />
+
+                            <com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar
+                                android:id="@+id/seekBarSat"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:layout_margin="@dimen/margin_tiny" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/textViewVal"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/white"
+                                android:textSize="@dimen/text_size_small" />
+
+                            <com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar
+                                android:id="@+id/seekBarVal"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:layout_margin="@dimen/margin_tiny" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/textViewDilate"
@@ -299,35 +298,43 @@
                         android:layout_margin="@dimen/margin_tiny"
                         android:max="6" />
 
-                    <TextView
+                    <LinearLayout
+                        android:id="@+id/viewContainerModes"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_small"
-                        android:text="@string/mode"
-                        android:textColor="@color/white"
-                        android:textSize="@dimen/text_size_small" />
+                        android:orientation="vertical">
 
-                    <Spinner
-                        android:id="@+id/spinnerMode"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="@dimen/margin_tiny"
-                        android:spinnerMode="dropdown" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:text="@string/mode"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/text_size_small" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_small"
-                        android:text="@string/method"
-                        android:textColor="@color/white"
-                        android:textSize="@dimen/text_size_small" />
+                        <Spinner
+                            android:id="@+id/spinnerMode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/margin_tiny"
+                            android:spinnerMode="dropdown" />
 
-                    <Spinner
-                        android:id="@+id/spinnerMethod"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="@dimen/margin_tiny"
-                        android:spinnerMode="dropdown" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:text="@string/method"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/text_size_small" />
+
+                        <Spinner
+                            android:id="@+id/spinnerMethod"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/margin_tiny"
+                            android:spinnerMode="dropdown" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -342,7 +349,7 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical" >
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/textViewKernelSize"
@@ -408,7 +415,7 @@
                         android:id="@+id/checkBoxL2Gradient"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/threshold_ratio"/>
+                        android:text="@string/threshold_ratio" />
 
                 </LinearLayout>
 

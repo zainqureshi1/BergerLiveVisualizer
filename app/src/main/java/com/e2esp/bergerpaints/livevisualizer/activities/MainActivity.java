@@ -3,7 +3,6 @@ package com.e2esp.bergerpaints.livevisualizer.activities;
 import java.util.ArrayList;
 
 import android.app.Dialog;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -45,6 +44,8 @@ import com.e2esp.bergerpaints.livevisualizer.models.ProductColor;
 import com.e2esp.bergerpaints.livevisualizer.models.SecondaryColor;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
 import com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar;
+
+import org.opencv.core.Mat;
 
 public class MainActivity extends FragmentActivity implements OnFragmentInteractionListener {
     private static final String TAG = "MainActivity";
@@ -93,6 +94,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private TextView textViewSat;
     private TextView textViewVal;
 
+    private View viewContainerGeneralControls;
     private View viewContainerModes;
     private TextView textViewDilate;
     private TextView textViewDilateSize;
@@ -142,6 +144,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         setupColorsTray();
         setupProductsTray();
         showFragment(FRAGMENT_INDEX_CAMERA);
+        toggleOptions();
     }
 
     private void setupViews() {
@@ -210,6 +213,13 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
             public void onClick(View v) {
                 if (colorsTrayVisible) {
                     hideColorsTray();
+                    clearColorSelections();
+                    if (cameraFragment != null) {
+                        cameraFragment.setFillColor(-1);
+                    }
+                    if (stillFragment != null) {
+                        stillFragment.setFillColor(-1);
+                    }
                 } else {
                     showColorsTray();
                 }
@@ -221,6 +231,13 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
             public void onClick(View v) {
                 if (productsTrayVisible) {
                     hideProductsTray();
+                    clearColorSelections();
+                    if (cameraFragment != null) {
+                        cameraFragment.setFillColor(-1);
+                    }
+                    if (stillFragment != null) {
+                        stillFragment.setFillColor(-1);
+                    }
                 } else {
                     showProductsTray();
                 }
@@ -265,6 +282,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         textViewSat.setText("S:50");
         textViewVal.setText("V:50");
 
+        viewContainerGeneralControls = findViewById(R.id.viewContainerGeneralControls);
         viewContainerModes = findViewById(R.id.viewContainerModes);
 
         seekBarDilate = (SeekBar) findViewById(R.id.seekBarDilate);
@@ -343,22 +361,24 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         }
         switch (visibleOptions) {
             case 0:
-                viewContainerSeekBars.setVisibility(View.VISIBLE);
-                viewContainerModes.setVisibility(View.GONE);
-                viewContainerCannyControls.setVisibility(View.GONE);
-                break;
-            case 1:
-                viewContainerSeekBars.setVisibility(View.GONE);
+                viewContainerGeneralControls.setVisibility(View.VISIBLE);
                 viewContainerModes.setVisibility(View.VISIBLE);
                 viewContainerCannyControls.setVisibility(View.GONE);
                 break;
+            case 1:
+                viewContainerGeneralControls.setVisibility(View.VISIBLE);
+                viewContainerModes.setVisibility(View.GONE);
+                viewContainerCannyControls.setVisibility(View.GONE);
+                break;
             case 2:
-                viewContainerSeekBars.setVisibility(View.GONE);
+                viewContainerGeneralControls.setVisibility(View.GONE);
                 viewContainerModes.setVisibility(View.GONE);
                 viewContainerCannyControls.setVisibility(View.VISIBLE);
                 break;
         }
         if (cameraFragment != null) {
+            cameraFragment.doingColorBlob = visibleOptions == 0;
+            cameraFragment.doingFloodFill = visibleOptions == 1;
             cameraFragment.doingCanny = visibleOptions == 2;
         }
     }
@@ -1422,6 +1442,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
 
     private void primaryColorClicked(PrimaryColor color) {
         if (color.isTrayOpen()) {
+            imageViewSymphonyColors.setColorFilter(color.getColor());
             secondaryColorClicked(color);
             return;
         }
@@ -1450,6 +1471,9 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         if (cameraFragment != null) {
             cameraFragment.setFillColor(color.getColor());
         }
+        if (stillFragment != null) {
+            stillFragment.setFillColor(color.getColor());
+        }
     }
 
     /*
@@ -1461,11 +1485,11 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         imageViewProductColors.clearColorFilter();
     }
 
-    private void showStillScreen(final Bitmap bitmap) {
+    private void showStillScreen(final Mat rgba) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                StillFragment.mBitmap = bitmap;
+                StillFragment.mRgba = rgba;
                 showFragment(FRAGMENT_INDEX_STILL);
             }
         });
@@ -1502,8 +1526,8 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 clearColorSelections();
                 break;
             case SHOW_STILL_SCREEN:
-                Bitmap bitmap = (Bitmap) obj;
-                showStillScreen(bitmap);
+                Mat rgba = (Mat) obj;
+                showStillScreen(rgba);
                 break;
         }
     }

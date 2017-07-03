@@ -13,14 +13,16 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.e2esp.bergerpaints.livevisualizer.R;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnFragmentInteractionListener;
 import com.e2esp.bergerpaints.livevisualizer.models.Options;
 import com.e2esp.bergerpaints.livevisualizer.utils.PermissionManager;
+import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
 import com.e2esp.bergerpaints.livevisualizer.views.DrawingView;
+
+import org.opencv.core.Mat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -37,7 +39,8 @@ public class StillFragment extends Fragment {
 
     private OnFragmentInteractionListener onFragmentInteractionListener;
 
-    public static Bitmap mBitmap;
+    public static Mat mRgba;
+    private Bitmap mBitmap;
 
     private ViewGroup viewContainerDrawing;
     private DrawingView drawingView;
@@ -74,8 +77,9 @@ public class StillFragment extends Fragment {
 
         viewContainerDrawing = (ViewGroup) view.findViewById(R.id.viewContainerDrawing);
 
-        if (mBitmap != null) {
-            drawingView = new DrawingView(getContext(), mBitmap);
+        if (mRgba != null) {
+            mBitmap = Utility.matToBitmap(mRgba);
+            drawingView = new DrawingView(getContext(), mRgba, mBitmap);
             ViewGroup.LayoutParams drawingParams = new ViewGroup.LayoutParams(mBitmap.getWidth(), mBitmap.getHeight());
             viewContainerDrawing.addView(drawingView, drawingParams);
         }
@@ -83,7 +87,16 @@ public class StillFragment extends Fragment {
         return view;
     }
 
+    public void setFillColor(int color) {
+        drawingView.setFillColor(color);
+    }
+
     public void saveImage(final Options options) {
+        if (true) {
+            drawingView.watershed();
+            return;
+        }
+
         final Dialog dialog = new Dialog(getContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_save);

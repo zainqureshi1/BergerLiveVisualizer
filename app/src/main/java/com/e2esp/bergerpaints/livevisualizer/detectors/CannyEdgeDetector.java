@@ -1,8 +1,6 @@
 package com.e2esp.bergerpaints.livevisualizer.detectors;
 
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 

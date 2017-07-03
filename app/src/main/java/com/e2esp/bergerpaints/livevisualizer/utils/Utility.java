@@ -3,7 +3,6 @@ package com.e2esp.bergerpaints.livevisualizer.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.preference.PreferenceManager;
 
 import com.e2esp.bergerpaints.livevisualizer.models.Options;
@@ -113,6 +112,12 @@ public class Utility {
         Bitmap bitmap = Bitmap.createBitmap(mat.cols(), mat.rows(),Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(mat, bitmap);
         return bitmap;
+    }
+
+    public static Mat bitmapToMat(Bitmap bitmap) {
+        Mat mat = new Mat();
+        Utils.bitmapToMat(bitmap, mat);
+        return mat;
     }
 
     public static void saveOptions(Context context, Options options) {

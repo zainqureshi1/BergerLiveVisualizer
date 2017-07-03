@@ -24,7 +24,7 @@ public class ColorBlobDetector {
     private Scalar mLowerBound = new Scalar(0);
     private Scalar mUpperBound = new Scalar(0);
     // Color radius for range checking in HSV color space
-    public Scalar mColorRadius = new Scalar(50, 50, 50, 0);
+    private Scalar mColorRadius = new Scalar(50, 50, 50, 0);
     private List<MatOfPoint> mContours = new ArrayList<>();
 
     // Minimum contour area in percent for contours filtering
@@ -33,17 +33,17 @@ public class ColorBlobDetector {
     // Cache
     //private Mat mPyrDownMat = new Mat();
     private Mat mHsvMat = new Mat();
-    public Mat mMask = new Mat();
+    private Mat mMask = new Mat();
     //private Mat mDilatedMask = new Mat();
     //private List<Mat> mDilatedMasks = new ArrayList<>();
     //private int maskCount = -1;
     private Mat mHierarchy = new Mat();
 
-    public int mDilationIterations = 1;
-    public int mStructure = Imgproc.MORPH_RECT;
-    public int mDilationSize = 3;
-    public int mContourMode = Imgproc.RETR_EXTERNAL;
-    public int mContourMethod = Imgproc.CHAIN_APPROX_SIMPLE;
+    private int mDilationIterations = 1;
+    private int mStructure = Imgproc.MORPH_RECT;
+    private int mDilationSize = 3;
+    private int mContourMode = Imgproc.RETR_EXTERNAL;
+    private int mContourMethod = Imgproc.CHAIN_APPROX_SIMPLE;
 
     private long mLastProcessTime = -1;
     private boolean mUpdateNeeded = false;
@@ -78,6 +78,24 @@ public class ColorBlobDetector {
         mUpperBound.val[3] = 255;
 
         mUpdateNeeded = true;
+    }
+
+    public void setModes(int dilate, int structure, int dilateSize, int mode, int method) {
+        if (dilate != -1) {
+            mDilationIterations = dilate;
+        }
+        if (structure != -1) {
+            mStructure = structure;
+        }
+        if (dilateSize != -1) {
+            mDilationSize = dilateSize;
+        }
+        if (mode != -1) {
+            mContourMode = mode;
+        }
+        if (method != -1) {
+            mContourMethod = method;
+        }
     }
 
     public void setMinContourArea(double area) {
@@ -197,8 +215,14 @@ public class ColorBlobDetector {
     }*/
 
     public boolean shouldUpdate() {
-        if (mLastProcessTime < 0) return true;
-        return System.currentTimeMillis() - mLastProcessTime >= mUpdateDelay;
+        boolean update;
+        if (mLastProcessTime < 0) {
+            update = true;
+        } else {
+            update = System.currentTimeMillis() - mLastProcessTime >= mUpdateDelay;
+        }
+        //Log.v(TAG, "shouldUpdate: "+update);
+        return update;
     }
 
     public boolean isUpdateNeeded() {

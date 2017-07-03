@@ -6,6 +6,8 @@
     <dimen name="color_box_size">106dp</dimen>
     <dimen name="product_box_size">212dp</dimen>
 
+    <dimen name="seek_bars_height">400dp</dimen>
+
     <dimen name="margin_minute">2dp</dimen>
     <dimen name="margin_tiny">8dp</dimen>
     <dimen name="margin_small">20dp</dimen>
