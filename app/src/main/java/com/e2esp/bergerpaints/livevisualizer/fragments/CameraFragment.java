@@ -32,9 +32,7 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 /**
  * Created by Zain on 6/15/2017.
@@ -51,12 +49,10 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
     private boolean isFillColorSelected = false;
     private Mat mRgba;
     private Rect mTouchedRect;
-    private Scalar mBlobColorRgba;
     private Scalar mBlobColorHsv;
     private ColorBlobDetector mBlobDetector;
     private CannyEdgeDetector mCannyDetector;
     private FloodFillDetector mFloodDetector;
-    private Scalar mContourColor;
     private Scalar mFillColorRgb;
     private Scalar mFillColorHsv;
 
@@ -116,9 +112,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         mBlobDetector = new ColorBlobDetector();
         mCannyDetector = new CannyEdgeDetector();
         mFloodDetector = new FloodFillDetector();
-        mBlobColorRgba = new Scalar(255);
         mBlobColorHsv = new Scalar(255);
-        mContourColor = new Scalar(255, 0, 0, 255);
     }
 
     @Override
@@ -200,7 +194,6 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
             blobColorHsv.val[i] /= pointCount;
 
         Log.i(TAG, "blobColorHsv: "+blobColorHsv);
-        mBlobColorRgba = Utility.convertScalarHsv2Rgba(blobColorHsv);
 
         touchedRegionRgba.release();
         touchedRegionHsv.release();
@@ -213,71 +206,6 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
 
     private Point touchPoint() {
         return new Point(mTouchedRect.x + mTouchedRect.width / 2, mTouchedRect.y + mTouchedRect.height / 2);
-    }
-
-    private void floodFill1(Mat img, int channel, double newValue, Point seedPoint, double variation) {
-        Mat clone = img.clone();
-
-        try {
-            int rows = img.rows();
-            int cols = img.cols();
-            boolean[][] visited = new boolean[rows][cols];
-
-            if (seedPoint.x >= 0 && seedPoint.x < rows &&
-                    seedPoint.y >= 0 && seedPoint.y < cols) {
-                Queue<Point> queue = new LinkedList<>();
-                queue.add(seedPoint);
-
-                double initialValue = img.get((int)seedPoint.x, (int)seedPoint.y)[channel];
-                double loLimit = Math.max(0, initialValue - variation);
-                double hiLimit = Math.min(180, initialValue + variation);
-
-                int pixelCount = 0;
-                while (!queue.isEmpty()) {
-                    Point p = queue.remove();
-                    if (!visited[(int) p.x][(int) p.y]
-                            && setIfInRange(img, channel, newValue, p, loLimit, hiLimit)) {
-                        visited[(int) p.y][(int) p.x] = true;
-                        pixelCount++;
-
-                        if (p.x + 1 < rows) {
-                            queue.add(new Point(p.x + 1, p.y));
-                        }
-                        if (p.x - 1 >= 0) {
-                            queue.add(new Point(p.x - 1, p.y));
-                        }
-                        if (p.y + 1 < cols) {
-                            queue.add(new Point(p.x, p.y + 1));
-                        }
-                        if (p.y - 1 >= 0) {
-                            queue.add(new Point(p.x, p.y - 1));
-                        }
-                    }
-                    if (pixelCount % 10 == 0) {
-                        Log.i(TAG, "FloodFill1 :: During Matched Pixels: "+pixelCount);
-                    }
-                }
-                Log.i(TAG, "FloodFill1 :: Matched Pixels: "+pixelCount);
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-        Mat diff = new Mat();
-        Core.subtract(img, clone, diff);
-        int nz = Core.countNonZero(diff);
-        Log.i(TAG, "clonedDiff :: rows:"+diff.rows()+" cols:"+diff.cols()+" nz:"+nz);
-        diff.release();
-        clone.release();
-    }
-
-    private boolean setIfInRange(Mat img, int channel, double newValue, Point point, double loLimit, double hiLimit) {
-        double value = img.get((int)point.x, (int)point.y)[channel];
-        if (value >= loLimit && value <= hiLimit) {
-            img.get((int)point.x, (int)point.y)[channel] = newValue;
-            return true;
-        }
-        return false;
     }
 
     public void takePicture() {

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 
 import com.e2esp.bergerpaints.livevisualizer.R;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnFragmentInteractionListener;
+import com.e2esp.bergerpaints.livevisualizer.models.EditState;
 import com.e2esp.bergerpaints.livevisualizer.models.Options;
 import com.e2esp.bergerpaints.livevisualizer.utils.PermissionManager;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
@@ -27,19 +29,20 @@ import org.opencv.core.Mat;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 
 /**
  * Created by Zain on 6/15/2017.
  */
 
 public class StillFragment extends Fragment {
-    private final String TAG = this.getClass().getName();
+    private final String TAG = "StillFragment";
 
     private static StillFragment instance;
+    public static Mat mRgba;
 
     private OnFragmentInteractionListener onFragmentInteractionListener;
 
-    public static Mat mRgba;
     private Bitmap mBitmap;
 
     private ViewGroup viewContainerDrawing;
@@ -88,15 +91,20 @@ public class StillFragment extends Fragment {
     }
 
     public void setFillColor(int color) {
-        drawingView.setFillColor(color);
+        if (drawingView != null) {
+            drawingView.setFillColor(color);
+        }
+    }
+
+    public void applyWatershedding() {
+        drawingView.watershed();
+    }
+
+    public void undoWatershedding() {
+        drawingView.removeLastLine();
     }
 
     public void saveImage(final Options options) {
-        if (true) {
-            drawingView.watershed();
-            return;
-        }
-
         final Dialog dialog = new Dialog(getContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_save);
@@ -166,6 +174,12 @@ public class StillFragment extends Fragment {
             ex.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        PermissionManager.getInstance().onResult(requestCode, permissions, grantResults);
     }
 
 }

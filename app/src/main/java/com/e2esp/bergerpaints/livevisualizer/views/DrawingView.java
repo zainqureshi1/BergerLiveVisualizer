@@ -12,12 +12,9 @@ import android.view.View;
 import com.e2esp.bergerpaints.livevisualizer.detectors.WatershedSegmenter;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
 
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
 
 /**
  * Created by Zain on 6/15/2017.
@@ -25,8 +22,6 @@ import org.opencv.imgproc.Imgproc;
 
 public class DrawingView extends View {
 
-    public int width;
-    public int height;
     private Mat mMat;
     private Scalar mFillColorRgb;
     private Bitmap mBitmap;
@@ -35,11 +30,9 @@ public class DrawingView extends View {
     private Paint mPaint;
     private Paint mBitmapPaint;
     private WatershedSegmenter watershedSegmenter;
-    Context context;
 
     public DrawingView(Context c, Mat mat, Bitmap bitmap) {
         super(c);
-        context = c;
         mMat = mat;
         mPath = new Path();
         mBitmap = bitmap;
@@ -78,8 +71,14 @@ public class DrawingView extends View {
 
     private void touch_start(float x, float y) {
         mPath.reset();
+        if (mFillColorRgb == null) {
+            mPaint.setColor(Color.WHITE);
+        } else {
+            int color = Utility.colorRgbToInt((int)mFillColorRgb.val[0], (int)mFillColorRgb.val[1], (int)mFillColorRgb.val[2]);
+            mPaint.setColor(color);
+        }
         mPath.moveTo(x, y);
-        watershedSegmenter.startLine(new Point(x, y), mFillColorRgb);
+        watershedSegmenter.startLine(new Point(x, y), mFillColorRgb, mBitmap.copy(mBitmap.getConfig(), true));
         mX = x;
         mY = y;
     }
@@ -102,8 +101,6 @@ public class DrawingView extends View {
         mCanvas.drawPath(mPath, mPaint);
         // kill this so we don't double draw
         mPath.reset();
-
-        //watershed();
     }
 
     @Override
@@ -144,26 +141,13 @@ public class DrawingView extends View {
         invalidate();
     }
 
-    /*private Mat watershed(Mat rgba) {
-        Mat threeChannel = new Mat();
-        Imgproc.cvtColor(rgba, threeChannel, Imgproc.COLOR_RGB2GRAY);
-        Imgproc.threshold(threeChannel, threeChannel, 100, 255, Imgproc.THRESH_BINARY);
-
-        Mat fg = new Mat(rgba.size(), CvType.CV_8U);
-        Imgproc.erode(threeChannel,fg,new Mat(),new Point(-1,-1),2);
-
-        Mat bg = new Mat(rgba.size(),CvType.CV_8U);
-        Imgproc.dilate(threeChannel,bg,new Mat(),new Point(-1,-1),3);
-        Imgproc.threshold(bg,bg,1, 128,Imgproc.THRESH_BINARY_INV);
-
-        Mat markers = new Mat(rgba.size(),CvType.CV_8U, new Scalar(0));
-        Core.add(fg, bg, markers);
-
-        WatershedSegmenter segmenter = new WatershedSegmenter();
-        segmenter.setMarkers(markers);
-        Mat result = segmenter.process(rgba);
-
-        return result;
-    }*/
+    public void removeLastLine() {
+        Bitmap previousBitmap = watershedSegmenter.removeLastLine();
+        if (previousBitmap != null) {
+            mBitmap = previousBitmap;
+            mCanvas.setBitmap(mBitmap);
+            invalidate();
+        }
+    }
 
 }

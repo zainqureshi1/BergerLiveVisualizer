@@ -3,6 +3,7 @@ package com.e2esp.bergerpaints.livevisualizer.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.preference.PreferenceManager;
 
 import com.e2esp.bergerpaints.livevisualizer.models.Options;
@@ -73,6 +74,10 @@ public class Utility {
                 (color >> 16) & 0xFF,
                 (color >> 8) & 0xFF,
                 (color >> 0) & 0xFF};
+    }
+
+    public static int colorRgbToInt(int r, int g, int b) {
+        return (0xFF << 24) | (r << 16) | (g << 8) | b;
     }
 
     public static Scalar convertScalarHsv2Rgba(Scalar hsvColor) {

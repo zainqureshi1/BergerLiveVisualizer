@@ -1,5 +1,6 @@
 package com.e2esp.bergerpaints.livevisualizer.detectors;
 
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
@@ -27,7 +28,7 @@ public class WatershedSegmenter {
 
     private Point previousPoint;
 
-    public Mat markers;
+    private Mat markers;
     private Mat markersMask;
     private Mat wsImage;
 
@@ -53,20 +54,33 @@ public class WatershedSegmenter {
         markersMask.setTo(Scalar.all(0));
     }
 
-    public void startLine(Point point, Scalar color) {
+    public void startLine(Point point, Scalar color, Bitmap bitmap) {
         previousPoint = point;
         if (color != null) {
             Log.i(TAG, "Adding color in tab: r:" + color.val[0] + " g:" + color.val[1] + " b:" + color.val[2]);
-            colorTab.add(new SegmentColor(point, Utility.convertScalarRgb2Hsv(color)));
+            colorTab.add(new SegmentColor(point, Utility.convertScalarRgb2Hsv(color), markersMask.clone(), bitmap));
         } else {
             Log.i(TAG, "Adding null color in tab");
-            colorTab.add(new SegmentColor(point, null));
+            colorTab.add(new SegmentColor(point, null, markersMask.clone(), bitmap));
         }
     }
 
     public void drawLine(Point point) {
         Imgproc.line(markersMask, previousPoint, point, Scalar.all(255), 5, 8, 0);
         previousPoint = point;
+    }
+
+    public Bitmap removeLastLine() {
+        int colors = colorTab.size();
+        Bitmap bitmap = null;
+        if (colors > 0) {
+            SegmentColor color = colorTab.get(colors - 1);
+            markersMask.release();
+            markersMask = color.startingMask;
+            bitmap = color.startingBitmap;
+            colorTab.remove(colors - 1);
+        }
+        return bitmap;
     }
 
     public Mat watershed(Mat image) {
@@ -159,10 +173,14 @@ public class WatershedSegmenter {
         private Point startPoint;
         private Scalar color;
         private int mark;
+        private Mat startingMask;
+        private Bitmap startingBitmap;
 
-        SegmentColor(Point startPoint, Scalar color) {
+        SegmentColor(Point startPoint, Scalar color, Mat startingMask, Bitmap startingBitmap) {
             this.startPoint = startPoint;
             this.color = color;
+            this.startingMask = startingMask;
+            this.startingBitmap = startingBitmap;
         }
 
     }

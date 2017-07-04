@@ -171,174 +171,201 @@
             android:layout_height="match_parent"
             android:orientation="horizontal">
 
-            <ScrollView
+            <LinearLayout
                 android:id="@+id/viewContainerGeneralControls"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:orientation="vertical" >
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="horizontal" >
+
+                    <Button
+                        android:id="@+id/buttonTabColors"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/colors" />
+
+                    <Button
+                        android:id="@+id/buttonTabOptions"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/options" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/viewContainerColors"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
 
                     <LinearLayout
-                        android:id="@+id/viewContainerSeekBars"
                         android:layout_width="wrap_content"
-                        android:layout_height="@dimen/seek_bars_height"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:gravity="center_horizontal"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/textViewHue"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textColor="@color/white"
-                                android:textSize="@dimen/text_size_small" />
-
-                            <com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar
-                                android:id="@+id/seekBarHue"
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                android:layout_margin="@dimen/margin_tiny" />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:gravity="center_horizontal"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/textViewSat"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textColor="@color/white"
-                                android:textSize="@dimen/text_size_small" />
-
-                            <com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar
-                                android:id="@+id/seekBarSat"
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                android:layout_margin="@dimen/margin_tiny" />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:gravity="center_horizontal"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/textViewVal"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textColor="@color/white"
-                                android:textSize="@dimen/text_size_small" />
-
-                            <com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar
-                                android:id="@+id/seekBarVal"
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                android:layout_margin="@dimen/margin_tiny" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/textViewDilate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/dilate"
-                        android:textColor="@color/white"
-                        android:textSize="@dimen/text_size_small" />
-
-                    <SeekBar
-                        android:id="@+id/seekBarDilate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="@dimen/margin_tiny"
-                        android:max="3" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_small"
-                        android:text="@string/structure"
-                        android:textColor="@color/white"
-                        android:textSize="@dimen/text_size_small" />
-
-                    <Spinner
-                        android:id="@+id/spinnerStructure"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="@dimen/margin_tiny"
-                        android:spinnerMode="dropdown" />
-
-                    <TextView
-                        android:id="@+id/textViewDilateSize"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_small"
-                        android:text="@string/size"
-                        android:textColor="@color/white"
-                        android:textSize="@dimen/text_size_small" />
-
-                    <SeekBar
-                        android:id="@+id/seekBarDilateSize"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="@dimen/margin_tiny"
-                        android:max="6" />
-
-                    <LinearLayout
-                        android:id="@+id/viewContainerModes"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center_horizontal"
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/textViewHue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/margin_small"
-                            android:text="@string/mode"
                             android:textColor="@color/white"
                             android:textSize="@dimen/text_size_small" />
 
-                        <Spinner
-                            android:id="@+id/spinnerMode"
+                        <com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar
+                            android:id="@+id/seekBarHue"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="@dimen/margin_tiny"
-                            android:spinnerMode="dropdown" />
+                            android:layout_height="match_parent"
+                            android:layout_margin="@dimen/margin_tiny" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/textViewSat"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/margin_small"
-                            android:text="@string/method"
                             android:textColor="@color/white"
                             android:textSize="@dimen/text_size_small" />
 
-                        <Spinner
-                            android:id="@+id/spinnerMethod"
+                        <com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar
+                            android:id="@+id/seekBarSat"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_margin="@dimen/margin_tiny" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/textViewVal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_margin="@dimen/margin_tiny"
-                            android:spinnerMode="dropdown" />
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/text_size_small" />
+
+                        <com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar
+                            android:id="@+id/seekBarVal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_margin="@dimen/margin_tiny" />
 
                     </LinearLayout>
 
                 </LinearLayout>
 
-            </ScrollView>
+                <ScrollView
+                    android:id="@+id/viewContainerOptions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/textViewDilate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/dilate"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/text_size_small" />
+
+                        <SeekBar
+                            android:id="@+id/seekBarDilate"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/margin_tiny"
+                            android:max="3" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:text="@string/structure"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/text_size_small" />
+
+                        <Spinner
+                            android:id="@+id/spinnerStructure"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/margin_tiny"
+                            android:spinnerMode="dropdown" />
+
+                        <TextView
+                            android:id="@+id/textViewDilateSize"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:text="@string/size"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/text_size_small" />
+
+                        <SeekBar
+                            android:id="@+id/seekBarDilateSize"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/margin_tiny"
+                            android:max="6" />
+
+                        <LinearLayout
+                            android:id="@+id/viewContainerModes"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/margin_small"
+                                android:text="@string/mode"
+                                android:textColor="@color/white"
+                                android:textSize="@dimen/text_size_small" />
+
+                            <Spinner
+                                android:id="@+id/spinnerMode"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="@dimen/margin_tiny"
+                                android:spinnerMode="dropdown" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/margin_small"
+                                android:text="@string/method"
+                                android:textColor="@color/white"
+                                android:textSize="@dimen/text_size_small" />
+
+                            <Spinner
+                                android:id="@+id/spinnerMethod"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="@dimen/margin_tiny"
+                                android:spinnerMode="dropdown" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </ScrollView>
+
+            </LinearLayout>
 
             <ScrollView
                 android:id="@+id/viewContainerCannyControls"
@@ -439,12 +466,40 @@
             android:layout_alignParentTop="true"
             android:src="@drawable/color_box" />
 
-        <ImageView
-            android:id="@+id/imageViewTakePicture"
-            android:layout_width="@dimen/color_box_size"
-            android:layout_height="@dimen/color_box_size"
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_centerVertical="true"
-            android:src="@drawable/icon_camera" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <ImageView
+                android:id="@+id/imageViewCamera"
+                android:layout_width="@dimen/color_box_size"
+                android:layout_height="@dimen/color_box_size"
+                android:src="@drawable/icon_camera" />
+
+            <ImageView
+                android:id="@+id/imageViewBrush"
+                android:layout_width="@dimen/color_box_size"
+                android:layout_height="@dimen/color_box_size"
+                android:src="@drawable/icon_brush"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/imageViewUndo"
+                android:layout_width="@dimen/color_box_size"
+                android:layout_height="@dimen/color_box_size"
+                android:src="@drawable/icon_undo"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/imageViewSave"
+                android:layout_width="@dimen/color_box_size"
+                android:layout_height="@dimen/color_box_size"
+                android:src="@drawable/icon_save"
+                android:visibility="gone" />
+
+        </LinearLayout>
 
         <ImageView
             android:id="@+id/imageViewProductColors"

@@ -2,10 +2,12 @@ package com.e2esp.bergerpaints.livevisualizer.activities;
 
 import java.util.ArrayList;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
@@ -42,6 +44,7 @@ import com.e2esp.bergerpaints.livevisualizer.models.Options;
 import com.e2esp.bergerpaints.livevisualizer.models.PrimaryColor;
 import com.e2esp.bergerpaints.livevisualizer.models.ProductColor;
 import com.e2esp.bergerpaints.livevisualizer.models.SecondaryColor;
+import com.e2esp.bergerpaints.livevisualizer.utils.PermissionManager;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
 import com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar;
 
@@ -52,6 +55,9 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
 
     private final int FRAGMENT_INDEX_CAMERA = 0;
     private final int FRAGMENT_INDEX_STILL = 1;
+
+    private final int TAB_INDEX_COLORS = 0;
+    private final int TAB_INDEX_OPTIONS = 1;
 
     private AppCompatTextView textViewShadesOfColor;
     private AppCompatTextView textViewColorsOfProduct;
@@ -83,9 +89,17 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
 
     private ImageView imageViewSymphonyColors;
     private ImageView imageViewProductColors;
-    private ImageView imageViewTakePicture;
 
-    private View viewContainerSeekBars;
+    private ImageView imageViewCamera;
+    private ImageView imageViewBrush;
+    private ImageView imageViewUndo;
+    private ImageView imageViewSave;
+
+    private View viewContainerGeneralControls;
+    private Button buttonTabColors;
+    private Button buttonTabOptions;
+
+    private View viewContainerColors;
     private VerticalSeekBar seekBarHue;
     private VerticalSeekBar seekBarSat;
     private VerticalSeekBar seekBarVal;
@@ -94,7 +108,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private TextView textViewSat;
     private TextView textViewVal;
 
-    private View viewContainerGeneralControls;
+    private View viewContainerOptions;
     private View viewContainerModes;
     private TextView textViewDilate;
     private TextView textViewDilateSize;
@@ -143,8 +157,17 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         initAnimations();
         setupColorsTray();
         setupProductsTray();
-        showFragment(FRAGMENT_INDEX_CAMERA);
         toggleOptions();
+
+        PermissionManager.getInstance().checkPermissionRequest(this, Manifest.permission.CAMERA, 120, "App require permission to use camera", new PermissionManager.Callback() {
+            @Override
+            public void onGranted() {
+                showFragment(FRAGMENT_INDEX_CAMERA);
+            }
+            @Override
+            public void onDenied() {
+            }
+        });
     }
 
     private void setupViews() {
@@ -214,12 +237,6 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 if (colorsTrayVisible) {
                     hideColorsTray();
                     clearColorSelections();
-                    if (cameraFragment != null) {
-                        cameraFragment.setFillColor(-1);
-                    }
-                    if (stillFragment != null) {
-                        stillFragment.setFillColor(-1);
-                    }
                 } else {
                     showColorsTray();
                 }
@@ -232,32 +249,60 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 if (productsTrayVisible) {
                     hideProductsTray();
                     clearColorSelections();
-                    if (cameraFragment != null) {
-                        cameraFragment.setFillColor(-1);
-                    }
-                    if (stillFragment != null) {
-                        stillFragment.setFillColor(-1);
-                    }
                 } else {
                     showProductsTray();
                 }
             }
         });
 
-        imageViewTakePicture = (ImageView) findViewById(R.id.imageViewTakePicture);
-        imageViewTakePicture.setOnClickListener(new View.OnClickListener() {
+        imageViewCamera = (ImageView) findViewById(R.id.imageViewCamera);
+        imageViewCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (visibleFragmentIndex == FRAGMENT_INDEX_CAMERA && cameraFragment != null) {
-                    cameraFragment.takePicture();
-                } else if (visibleFragmentIndex == FRAGMENT_INDEX_STILL && stillFragment != null) {
-                    stillFragment.saveImage(currentSelectionsToOptions());
-                }
+                rightOptionAction(0);
+            }
+        });
+        imageViewBrush = (ImageView) findViewById(R.id.imageViewBrush);
+        imageViewBrush.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rightOptionAction(1);
+            }
+        });
+        imageViewUndo = (ImageView) findViewById(R.id.imageViewUndo);
+        imageViewUndo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rightOptionAction(2);
+            }
+        });
+        imageViewSave = (ImageView) findViewById(R.id.imageViewSave);
+        imageViewSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rightOptionAction(3);
             }
         });
 
         viewContainerFragments = findViewById(R.id.viewContainerFragments);
-        viewContainerSeekBars = findViewById(R.id.viewContainerSeekBars);
+        viewContainerGeneralControls = findViewById(R.id.viewContainerGeneralControls);
+
+        buttonTabColors = (Button) findViewById(R.id.buttonTabColors);
+        buttonTabColors.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeOptionsTab(TAB_INDEX_COLORS);
+            }
+        });
+        buttonTabOptions = (Button) findViewById(R.id.buttonTabOptions);
+        buttonTabOptions.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeOptionsTab(TAB_INDEX_OPTIONS);
+            }
+        });
+
+        viewContainerColors = findViewById(R.id.viewContainerColors);
 
         seekBarHue = (VerticalSeekBar) findViewById(R.id.seekBarHue);
         seekBarHue.setProgress(Utility.colorToPercentTolerance(40, 360));
@@ -282,7 +327,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         textViewSat.setText("S:50");
         textViewVal.setText("V:50");
 
-        viewContainerGeneralControls = findViewById(R.id.viewContainerGeneralControls);
+        viewContainerOptions = findViewById(R.id.viewContainerOptions);
         viewContainerModes = findViewById(R.id.viewContainerModes);
 
         seekBarDilate = (SeekBar) findViewById(R.id.seekBarDilate);
@@ -383,6 +428,44 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         }
     }
 
+    private void changeOptionsTab(int tabIndex) {
+        switch (tabIndex) {
+            case TAB_INDEX_COLORS:
+                viewContainerColors.setVisibility(View.VISIBLE);
+                viewContainerOptions.setVisibility(View.GONE);
+                break;
+            case TAB_INDEX_OPTIONS:
+                viewContainerColors.setVisibility(View.GONE);
+                viewContainerOptions.setVisibility(View.VISIBLE);
+                break;
+        }
+    }
+
+    private void rightOptionAction(int index) {
+        switch (index) {
+            case 0:
+                if (cameraFragment != null) {
+                    cameraFragment.takePicture();
+                }
+                break;
+            case 1:
+                if (stillFragment != null) {
+                    stillFragment.applyWatershedding();
+                }
+                break;
+            case 2:
+                if (stillFragment != null) {
+                    stillFragment.undoWatershedding();
+                }
+                break;
+            case 3:
+                if (stillFragment != null) {
+                    stillFragment.saveImage(currentSelectionsToOptions());
+                }
+                break;
+        }
+    }
+
     private Options currentSelectionsToOptions() {
         int h = seekBarHue.getProgress();
         int s = seekBarSat.getProgress();
@@ -454,15 +537,22 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
             case FRAGMENT_INDEX_CAMERA:
                 getSupportFragmentManager().beginTransaction().replace(R.id.viewContainerFragments, getCameraFragment()).commit();
                 viewContainerLeftOptions.setVisibility(View.VISIBLE);
-                imageViewTakePicture.setImageResource(R.drawable.icon_camera);
+                imageViewCamera.setVisibility(View.VISIBLE);
+                imageViewBrush.setVisibility(View.GONE);
+                imageViewUndo.setVisibility(View.GONE);
+                imageViewSave.setVisibility(View.GONE);
                 break;
             case FRAGMENT_INDEX_STILL:
                 getSupportFragmentManager().beginTransaction().replace(R.id.viewContainerFragments, getStillFragment()).commit();
                 viewContainerLeftOptions.setVisibility(View.INVISIBLE);
-                imageViewTakePicture.setImageResource(R.drawable.icon_save);
+                imageViewCamera.setVisibility(View.GONE);
+                imageViewBrush.setVisibility(View.VISIBLE);
+                imageViewUndo.setVisibility(View.VISIBLE);
+                imageViewSave.setVisibility(View.VISIBLE);
                 break;
         }
         visibleFragmentIndex = index;
+        clearColorSelections();
     }
 
     /*
@@ -1483,6 +1573,12 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private void clearColorSelections() {
         imageViewSymphonyColors.clearColorFilter();
         imageViewProductColors.clearColorFilter();
+        if (cameraFragment != null) {
+            cameraFragment.setFillColor(-1);
+        }
+        if (stillFragment != null) {
+            stillFragment.setFillColor(-1);
+        }
     }
 
     private void showStillScreen(final Mat rgba) {
@@ -1530,6 +1626,12 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 showStillScreen(rgba);
                 break;
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        PermissionManager.getInstance().onResult(requestCode, permissions, grantResults);
     }
 
     private SeekBar.OnSeekBarChangeListener toleranceChangeListener = new SeekBar.OnSeekBarChangeListener() {

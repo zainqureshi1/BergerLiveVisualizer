@@ -9,6 +9,9 @@
 
     <string name="product_name">Product Name</string>
 
+    <string name="colors">Colors</string>
+    <string name="options">Options</string>
+
     <string name="dilate">Dilate</string>
     <string name="structure">Structure</string>
     <string name="size">Size</string>
