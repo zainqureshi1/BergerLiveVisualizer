@@ -2,6 +2,8 @@ package com.e2esp.bergerpaints.livevisualizer.detectors;
 
 import android.util.Log;
 
+import com.e2esp.bergerpaints.livevisualizer.activities.MainActivity;
+
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -22,7 +24,7 @@ public class FloodFillDetector {
     private long mLastProcessTime = -1;
 
     // Color radius for range checking in HSV color space
-    private Scalar mColorRadius = new Scalar(50, 50, 50, 0);
+    private Scalar mColorRadius = new Scalar(MainActivity.DEFAULT_TOLERANCE[0], MainActivity.DEFAULT_TOLERANCE[1], MainActivity.DEFAULT_TOLERANCE[2]);
 
     private Mat mMask = new Mat();
     private int mPreviousNonZero = 0;

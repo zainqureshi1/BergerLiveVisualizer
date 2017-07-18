@@ -59,6 +59,8 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private final int TAB_INDEX_COLORS = 0;
     private final int TAB_INDEX_OPTIONS = 1;
 
+    public static final int[] DEFAULT_TOLERANCE = {24, 10, 4};
+
     private AppCompatTextView textViewShadesOfColor;
     private AppCompatTextView textViewColorsOfProduct;
 
@@ -149,6 +151,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         setContentView(R.layout.activity_main);
@@ -157,12 +160,17 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         initAnimations();
         setupColorsTray();
         setupProductsTray();
-        toggleOptions();
 
         PermissionManager.getInstance().checkPermissionRequest(this, Manifest.permission.CAMERA, 120, "App require permission to use camera", new PermissionManager.Callback() {
             @Override
             public void onGranted() {
-                showFragment(FRAGMENT_INDEX_CAMERA);
+                new Handler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        showFragment(FRAGMENT_INDEX_CAMERA);
+                        toggleOptions();
+                    }
+                });
             }
             @Override
             public void onDenied() {
@@ -305,17 +313,17 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         viewContainerColors = findViewById(R.id.viewContainerColors);
 
         seekBarHue = (VerticalSeekBar) findViewById(R.id.seekBarHue);
-        seekBarHue.setProgress(Utility.colorToPercentTolerance(40, 360));
+        seekBarHue.setProgress(Utility.colorToPercentTolerance(DEFAULT_TOLERANCE[0], 360));
         seekBarHue.setTag(0);
         seekBarHue.setOnSeekBarChangeListener(toleranceChangeListener);
 
         seekBarSat = (VerticalSeekBar) findViewById(R.id.seekBarSat);
-        seekBarSat.setProgress(Utility.colorToPercentTolerance(50, 255));
+        seekBarSat.setProgress(Utility.colorToPercentTolerance(DEFAULT_TOLERANCE[1], 255));
         seekBarSat.setTag(1);
         seekBarSat.setOnSeekBarChangeListener(toleranceChangeListener);
 
         seekBarVal = (VerticalSeekBar) findViewById(R.id.seekBarVal);
-        seekBarVal.setProgress(Utility.colorToPercentTolerance(50, 255));
+        seekBarVal.setProgress(Utility.colorToPercentTolerance(DEFAULT_TOLERANCE[2], 255));
         seekBarVal.setTag(2);
         seekBarVal.setOnSeekBarChangeListener(toleranceChangeListener);
 

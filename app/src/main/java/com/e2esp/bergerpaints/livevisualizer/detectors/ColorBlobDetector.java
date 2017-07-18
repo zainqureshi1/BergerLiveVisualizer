@@ -2,6 +2,8 @@ package com.e2esp.bergerpaints.livevisualizer.detectors;
 
 import android.util.Log;
 
+import com.e2esp.bergerpaints.livevisualizer.activities.MainActivity;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -24,7 +26,7 @@ public class ColorBlobDetector {
     private Scalar mLowerBound = new Scalar(0);
     private Scalar mUpperBound = new Scalar(0);
     // Color radius for range checking in HSV color space
-    private Scalar mColorRadius = new Scalar(50, 50, 50, 0);
+    private Scalar mColorRadius = new Scalar(MainActivity.DEFAULT_TOLERANCE[0], MainActivity.DEFAULT_TOLERANCE[1], MainActivity.DEFAULT_TOLERANCE[2]);
     private List<MatOfPoint> mContours = new ArrayList<>();
 
     // Minimum contour area in percent for contours filtering
