@@ -103,7 +103,6 @@ public class FloodFillDetector {
         clone.release();*/
 
         mLastProcessTime = System.currentTimeMillis();
-        return;
     }
 
     public Mat getMask() {

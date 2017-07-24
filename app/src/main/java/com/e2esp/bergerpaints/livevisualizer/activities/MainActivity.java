@@ -16,13 +16,9 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -56,18 +52,20 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private final int FRAGMENT_INDEX_CAMERA = 0;
     private final int FRAGMENT_INDEX_STILL = 1;
 
-    private final int TAB_INDEX_COLORS = 0;
-    private final int TAB_INDEX_OPTIONS = 1;
+    private final int COLORS_TAB_INDEX_PRODUCTS = 0;
+    private final int COLORS_TAB_INDEX_SYMPHONY = 1;
 
     public static final int[] DEFAULT_TOLERANCE = {24, 10, 4};
 
-    private AppCompatTextView textViewShadesOfColor;
-    private AppCompatTextView textViewColorsOfProduct;
+    private ImageView imageViewColorSelection;
+
+    private AppCompatTextView textViewProductColors;
+    private AppCompatTextView textViewSymphonyColors;
+
+    private AppCompatTextView textViewColorShades;
 
     private View viewContainerColorsTray;
-    private View viewContainerProductsTray;
-    private LinearLayout linearLayoutSecondaryColorsTrayContainer;
-    private LinearLayout linearLayoutProductColorsTrayContainer;
+    private LinearLayout linearLayoutColorsTrayContainer;
 
     private RecyclerView recyclerViewColorsTray;
     private ArrayList<PrimaryColor> allColorsList;
@@ -84,24 +82,15 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private ArrayList<String> optionsNamesList;
     private ArrayAdapter<String> optionsAdapter;
 
-    private ImageButton imageButtonToggleOptions;
-    private ImageButton imageButtonSaveOptions;
     private View viewContainerLeftOptions;
     private View viewContainerRightOptions;
-
-    private ImageView imageViewSymphonyColors;
-    private ImageView imageViewProductColors;
+    private View viewContainerActionButtons;
 
     private ImageView imageViewCamera;
     private ImageView imageViewBrush;
     private ImageView imageViewUndo;
     private ImageView imageViewSave;
 
-    private View viewContainerGeneralControls;
-    private Button buttonTabColors;
-    private Button buttonTabOptions;
-
-    private View viewContainerColors;
     private VerticalSeekBar seekBarHue;
     private VerticalSeekBar seekBarSat;
     private VerticalSeekBar seekBarVal;
@@ -110,40 +99,19 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private TextView textViewSat;
     private TextView textViewVal;
 
-    private View viewContainerOptions;
-    private View viewContainerModes;
-    private TextView textViewDilate;
-    private TextView textViewDilateSize;
-    private SeekBar seekBarDilate;
-    private SeekBar seekBarDilateSize;
-    private Spinner spinnerStructure;
-    private Spinner spinnerMode;
-    private Spinner spinnerMethod;
-
-    private View viewContainerCannyControls;
-    private TextView textViewKernelSize;
-    private TextView textViewThreshold;
-    private TextView textViewThresholdRatio;
-    private TextView textViewSobelSize;
-    private SeekBar seekBarKernelSize;
-    private SeekBar seekBarThreshold;
-    private SeekBar seekBarThresholdRatio;
-    private SeekBar seekBarSobelSize;
-    private CheckBox checkBoxL2Gradient;
-
     private View viewContainerFragments;
     private CameraFragment cameraFragment;
     private StillFragment stillFragment;
 
-    private Animation animSlideLeftIn;
-    private Animation animSlideLeftOut;
-    private Animation animSlideRightIn;
-    private Animation animSlideRightOut;
+    private PrimaryColor selectedPrimaryColor;
+    private ProductColor selectedProductColor;
 
-    private int visibleOptions;
-
+    private boolean traysViewVisible;
     private boolean colorsTrayVisible;
     private boolean productsTrayVisible;
+
+    private int colorWhite;
+    private int colorBlack;
 
     private int visibleFragmentIndex = -1;
 
@@ -157,7 +125,6 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         setContentView(R.layout.activity_main);
 
         setupViews();
-        initAnimations();
         setupColorsTray();
         setupProductsTray();
 
@@ -168,7 +135,6 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                     @Override
                     public void run() {
                         showFragment(FRAGMENT_INDEX_CAMERA);
-                        toggleOptions();
                     }
                 });
             }
@@ -179,13 +145,51 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     }
 
     private void setupViews() {
-        textViewShadesOfColor = (AppCompatTextView) findViewById(R.id.textViewShadesOfColor);
-        textViewColorsOfProduct = (AppCompatTextView) findViewById(R.id.textViewColorsOfProduct);
+        colorWhite = getResources().getColor(R.color.white);
+        colorBlack = getResources().getColor(R.color.black);
+
+        imageViewColorSelection = (ImageView) findViewById(R.id.imageViewColorSelection);
+        imageViewColorSelection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (traysViewVisible) {
+                    hideTraysView();
+                    clearColorSelections();
+                } else {
+                    showTraysView();
+                }
+            }
+        });
+
+        textViewProductColors = (AppCompatTextView) findViewById(R.id.textViewProductColors);
+        textViewProductColors.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (productsTrayVisible) {
+                    hideProductsTray();
+                    clearColorSelections();
+                } else {
+                    showProductsTray();
+                }
+            }
+        });
+        textViewSymphonyColors = (AppCompatTextView) findViewById(R.id.textViewSymphonyColors);
+        textViewSymphonyColors.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (colorsTrayVisible) {
+                    hideColorsTray();
+                    clearColorSelections();
+                } else {
+                    showColorsTray();
+                }
+            }
+        });
+
+        textViewColorShades = (AppCompatTextView) findViewById(R.id.textViewColorShades);
 
         viewContainerColorsTray = findViewById(R.id.viewContainerColorsTray);
-        viewContainerProductsTray = findViewById(R.id.viewContainerProductsTray);
-        linearLayoutSecondaryColorsTrayContainer = (LinearLayout) findViewById(R.id.linearLayoutSecondaryColorsTrayContainer);
-        linearLayoutProductColorsTrayContainer = (LinearLayout) findViewById(R.id.linearLayoutProductColorsTrayContainer);
+        linearLayoutColorsTrayContainer = (LinearLayout) findViewById(R.id.linearLayoutColorsTrayContainer);
 
         recyclerViewColorsTray = (RecyclerView) findViewById(R.id.recyclerViewColorsTray);
         allColorsList = new ArrayList<>();
@@ -219,15 +223,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         spinnerOptions.setOnItemSelectedListener(optionSelectedListener);
         updateOptionsList();
 
-        imageButtonToggleOptions = (ImageButton) findViewById(R.id.imageButtonToggleOptions);
-        imageButtonToggleOptions.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleOptions();
-            }
-        });
-
-        imageButtonSaveOptions = (ImageButton) findViewById(R.id.imageButtonSaveOptions);
+        ImageButton imageButtonSaveOptions = (ImageButton) findViewById(R.id.imageButtonSaveOptions);
         imageButtonSaveOptions.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -237,31 +233,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
 
         viewContainerLeftOptions = findViewById(R.id.viewContainerLeftOptions);
         viewContainerRightOptions = findViewById(R.id.viewContainerRightOptions);
-
-        imageViewSymphonyColors = (ImageView) findViewById(R.id.imageViewSymphonyColors);
-        imageViewSymphonyColors.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (colorsTrayVisible) {
-                    hideColorsTray();
-                    clearColorSelections();
-                } else {
-                    showColorsTray();
-                }
-            }
-        });
-        imageViewProductColors = (ImageView) findViewById(R.id.imageViewProductColors);
-        imageViewProductColors.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (productsTrayVisible) {
-                    hideProductsTray();
-                    clearColorSelections();
-                } else {
-                    showProductsTray();
-                }
-            }
-        });
+        viewContainerActionButtons = findViewById(R.id.viewContainerActionButtons);
 
         imageViewCamera = (ImageView) findViewById(R.id.imageViewCamera);
         imageViewCamera.setOnClickListener(new View.OnClickListener() {
@@ -293,24 +265,6 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         });
 
         viewContainerFragments = findViewById(R.id.viewContainerFragments);
-        viewContainerGeneralControls = findViewById(R.id.viewContainerGeneralControls);
-
-        buttonTabColors = (Button) findViewById(R.id.buttonTabColors);
-        buttonTabColors.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                changeOptionsTab(TAB_INDEX_COLORS);
-            }
-        });
-        buttonTabOptions = (Button) findViewById(R.id.buttonTabOptions);
-        buttonTabOptions.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                changeOptionsTab(TAB_INDEX_OPTIONS);
-            }
-        });
-
-        viewContainerColors = findViewById(R.id.viewContainerColors);
 
         seekBarHue = (VerticalSeekBar) findViewById(R.id.seekBarHue);
         seekBarHue.setProgress(Utility.colorToPercentTolerance(DEFAULT_TOLERANCE[0], 360));
@@ -331,122 +285,9 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         textViewSat = (TextView) findViewById(R.id.textViewSat);
         textViewVal = (TextView) findViewById(R.id.textViewVal);
 
-        textViewHue.setText("H:40");
-        textViewSat.setText("S:50");
-        textViewVal.setText("V:50");
-
-        viewContainerOptions = findViewById(R.id.viewContainerOptions);
-        viewContainerModes = findViewById(R.id.viewContainerModes);
-
-        seekBarDilate = (SeekBar) findViewById(R.id.seekBarDilate);
-        seekBarDilate.setProgress(1);
-        seekBarDilate.setTag(0);
-        seekBarDilate.setOnSeekBarChangeListener(dilateChangeListener);
-        seekBarDilateSize = (SeekBar) findViewById(R.id.seekBarDilateSize);
-        seekBarDilateSize.setProgress(2);
-        seekBarDilateSize.setTag(1);
-        seekBarDilateSize.setOnSeekBarChangeListener(dilateChangeListener);
-
-        textViewDilate = (TextView) findViewById(R.id.textViewDilate);
-        textViewDilateSize = (TextView) findViewById(R.id.textViewDilateSize);
-
-        textViewDilate.setText(getString(R.string.dilate)+": 1");
-        textViewDilateSize.setText(getString(R.string.size)+": 3");
-
-        spinnerStructure = (Spinner) findViewById(R.id.spinnerStructure);
-        spinnerStructure.setAdapter(new ArrayAdapter<>(this, R.layout.spinner_item, new String[]{"RECT", "CROSS", "ELLIPSE"}));
-        spinnerStructure.setTag(0);
-        spinnerStructure.setOnItemSelectedListener(modeSelectedListener);
-        spinnerMode = (Spinner) findViewById(R.id.spinnerMode);
-        spinnerMode.setAdapter(new ArrayAdapter<>(this, R.layout.spinner_item, new String[]{"EXTERNAL", "LIST", "CCOMP", "TREE"}));
-        spinnerMode.setTag(1);
-        spinnerMode.setOnItemSelectedListener(modeSelectedListener);
-        spinnerMethod = (Spinner) findViewById(R.id.spinnerMethod);
-        spinnerMethod.setAdapter(new ArrayAdapter<>(this, R.layout.spinner_item, new String[]{"NONE", "SIMPLE", "TC89_L1", "TC89_KCOS"}));
-        spinnerMethod.setSelection(1);
-        spinnerMethod.setTag(2);
-        spinnerMethod.setOnItemSelectedListener(modeSelectedListener);
-
-        viewContainerCannyControls = findViewById(R.id.viewContainerCannyControls);
-
-        seekBarKernelSize = (SeekBar) findViewById(R.id.seekBarKernelSize);
-        seekBarKernelSize.setProgress(2);
-        seekBarKernelSize.setTag(0);
-        seekBarKernelSize.setOnSeekBarChangeListener(cannyChangeListener);
-        seekBarThreshold = (SeekBar) findViewById(R.id.seekBarThreshold);
-        seekBarThreshold.setProgress(49);
-        seekBarThreshold.setTag(1);
-        seekBarThreshold.setOnSeekBarChangeListener(cannyChangeListener);
-        seekBarThresholdRatio = (SeekBar) findViewById(R.id.seekBarThresholdRatio);
-        seekBarThresholdRatio.setProgress(99);
-        seekBarThresholdRatio.setTag(2);
-        seekBarThresholdRatio.setOnSeekBarChangeListener(cannyChangeListener);
-        seekBarSobelSize = (SeekBar) findViewById(R.id.seekBarSobelSize);
-        seekBarSobelSize.setProgress(0);
-        seekBarSobelSize.setTag(3);
-        seekBarSobelSize.setOnSeekBarChangeListener(cannyChangeListener);
-
-        textViewKernelSize = (TextView) findViewById(R.id.textViewKernelSize);
-        textViewThreshold = (TextView) findViewById(R.id.textViewThreshold);
-        textViewThresholdRatio = (TextView) findViewById(R.id.textViewThresholdRatio);
-        textViewSobelSize = (TextView) findViewById(R.id.textViewSobelSize);
-
-        textViewKernelSize.setText(getString(R.string.kernel_size)+ ": 3");
-        textViewThreshold.setText(getString(R.string.threshold)+ ": 50");
-        textViewThresholdRatio.setText(getString(R.string.threshold_ratio)+ ": 3.0");
-        textViewSobelSize.setText(getString(R.string.sobel_size)+ ": 3");
-
-        checkBoxL2Gradient = (CheckBox) findViewById(R.id.checkBoxL2Gradient);
-        checkBoxL2Gradient.setOnCheckedChangeListener(checkedChangeListener);
-    }
-
-    private void initAnimations() {
-        animSlideLeftIn = AnimationUtils.loadAnimation(this, R.anim.slide_left_in);
-        animSlideLeftOut = AnimationUtils.loadAnimation(this, R.anim.slide_left_out);
-        animSlideRightIn = AnimationUtils.loadAnimation(this, R.anim.slide_right_in);
-        animSlideRightOut = AnimationUtils.loadAnimation(this, R.anim.slide_right_out);
-    }
-
-    private void toggleOptions() {
-        visibleOptions++;
-        if (visibleOptions >= 3) {
-            visibleOptions = 0;
-        }
-        switch (visibleOptions) {
-            case 0:
-                viewContainerGeneralControls.setVisibility(View.VISIBLE);
-                viewContainerModes.setVisibility(View.VISIBLE);
-                viewContainerCannyControls.setVisibility(View.GONE);
-                break;
-            case 1:
-                viewContainerGeneralControls.setVisibility(View.VISIBLE);
-                viewContainerModes.setVisibility(View.GONE);
-                viewContainerCannyControls.setVisibility(View.GONE);
-                break;
-            case 2:
-                viewContainerGeneralControls.setVisibility(View.GONE);
-                viewContainerModes.setVisibility(View.GONE);
-                viewContainerCannyControls.setVisibility(View.VISIBLE);
-                break;
-        }
-        if (cameraFragment != null) {
-            cameraFragment.doingColorBlob = visibleOptions == 0;
-            cameraFragment.doingFloodFill = visibleOptions == 1;
-            cameraFragment.doingCanny = visibleOptions == 2;
-        }
-    }
-
-    private void changeOptionsTab(int tabIndex) {
-        switch (tabIndex) {
-            case TAB_INDEX_COLORS:
-                viewContainerColors.setVisibility(View.VISIBLE);
-                viewContainerOptions.setVisibility(View.GONE);
-                break;
-            case TAB_INDEX_OPTIONS:
-                viewContainerColors.setVisibility(View.GONE);
-                viewContainerOptions.setVisibility(View.VISIBLE);
-                break;
-        }
+        textViewHue.setText("H:"+DEFAULT_TOLERANCE[0]);
+        textViewSat.setText("S:"+DEFAULT_TOLERANCE[1]);
+        textViewVal.setText("V:"+DEFAULT_TOLERANCE[2]);
     }
 
     private void rightOptionAction(int index) {
@@ -478,12 +319,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         int h = seekBarHue.getProgress();
         int s = seekBarSat.getProgress();
         int v = seekBarVal.getProgress();
-        int dl = seekBarDilate.getProgress();
-        int st = spinnerStructure.getSelectedItemPosition();
-        int sz = seekBarDilateSize.getProgress();
-        int md = spinnerMode.getSelectedItemPosition();
-        int mt = spinnerMethod.getSelectedItemPosition();
-        return new Options(h, s, v, dl, st, sz, md, mt);
+        return new Options(h, s, v);
     }
 
     private void saveOptions() {
@@ -566,6 +402,25 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     /*
      Start :: Colors and Products Trays
      */
+
+    private void showTraysView() {
+        traysViewVisible = true;
+        viewContainerActionButtons.setVisibility(View.INVISIBLE);
+        viewContainerColorsTray.setVisibility(View.VISIBLE);
+        viewContainerColorsTray.bringToFront();
+        if (!colorsTrayVisible && !productsTrayVisible) {
+            showColorsTray();
+        }
+    }
+
+    private void hideTraysView() {
+        traysViewVisible = false;
+        viewContainerActionButtons.setVisibility(View.VISIBLE);
+        viewContainerColorsTray.setVisibility(View.GONE);
+        viewContainerFragments.bringToFront();
+        viewContainerLeftOptions.bringToFront();
+        viewContainerRightOptions.bringToFront();
+    }
 
     private void setupColorsTray() {
         ArrayList<SecondaryColor> secondaryColors;
@@ -1092,13 +947,23 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private void showColorsTray() {
         hideProductsTray();
         colorsTrayVisible = true;
-        viewContainerColorsTray.setVisibility(View.VISIBLE);
-        viewContainerColorsTray.bringToFront();
+        recyclerViewColorsTray.setVisibility(View.VISIBLE);
+        textViewSymphonyColors.setTextColor(colorWhite);
+        textViewSymphonyColors.setBackgroundResource(R.drawable.color_tab_selected_right);
         showColorsTray(0);
     }
 
     private void showColorsTray(final int iteration) {
         if (iteration >= allColorsList.size() || !colorsTrayVisible) {
+            if (colorsTrayVisible) {
+                if (selectedPrimaryColor != null) {
+                    selectedPrimaryColor.setTrayOpen(false);
+                    primaryColorClicked(selectedPrimaryColor);
+                } else if (activeColorsList.size() > 2) {
+                    activeColorsList.get(2).setTrayOpen(false);
+                    primaryColorClicked(activeColorsList.get(2));
+                }
+            }
             return;
         }
         activeColorsList.add(allColorsList.get(iteration).clone());
@@ -1113,14 +978,13 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
 
     private void hideColorsTray() {
         colorsTrayVisible = false;
-        viewContainerColorsTray.setVisibility(View.GONE);
         activeColorsList.clear();
         colorsRecyclerAdapter.notifyDataSetChanged();
-        textViewShadesOfColor.setText("");
-        linearLayoutSecondaryColorsTrayContainer.removeAllViews();
-        viewContainerFragments.bringToFront();
-        viewContainerLeftOptions.bringToFront();
-        viewContainerRightOptions.bringToFront();
+        recyclerViewColorsTray.setVisibility(View.GONE);
+        textViewColorShades.setText("");
+        textViewSymphonyColors.setTextColor(colorBlack);
+        textViewSymphonyColors.setBackgroundResource(R.drawable.color_tab_unselected_right);
+        linearLayoutColorsTrayContainer.removeAllViews();
     }
 
     private void setupProductsTray() {
@@ -1396,13 +1260,23 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private void showProductsTray() {
         hideColorsTray();
         productsTrayVisible = true;
-        viewContainerProductsTray.setVisibility(View.VISIBLE);
-        viewContainerProductsTray.bringToFront();
+        recyclerViewProductsTray.setVisibility(View.VISIBLE);
+        textViewProductColors.setTextColor(colorWhite);
+        textViewProductColors.setBackgroundResource(R.drawable.color_tab_selected_left);
         showProductsTray(0);
     }
 
     private void showProductsTray(final int iteration) {
         if (iteration >= allProductColorsList.size() || !productsTrayVisible) {
+            if (productsTrayVisible) {
+                if (selectedProductColor != null) {
+                    selectedProductColor.setTrayOpen(false);
+                    productColorClicked(selectedProductColor);
+                } else if (activeProductColorsList.size() > 0) {
+                    activeProductColorsList.get(0).setTrayOpen(false);
+                    productColorClicked(activeProductColorsList.get(0));
+                }
+            }
             return;
         }
         activeProductColorsList.add(allProductColorsList.get(iteration).clone());
@@ -1417,22 +1291,22 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
 
     private void hideProductsTray() {
         productsTrayVisible = false;
-        viewContainerProductsTray.setVisibility(View.GONE);
         activeProductColorsList.clear();
         productsRecyclerAdapter.notifyDataSetChanged();
-        textViewColorsOfProduct.setText("");
-        linearLayoutProductColorsTrayContainer.removeAllViews();
-        viewContainerFragments.bringToFront();
-        viewContainerLeftOptions.bringToFront();
-        viewContainerRightOptions.bringToFront();
+        recyclerViewProductsTray.setVisibility(View.GONE);
+        textViewColorShades.setText("");
+        textViewProductColors.setTextColor(colorBlack);
+        textViewProductColors.setBackgroundResource(R.drawable.color_tab_unselected_left);
+        linearLayoutColorsTrayContainer.removeAllViews();
     }
 
     private void showSecondaryColorsTray(PrimaryColor color) {
-        textViewShadesOfColor.setText(getString(R.string.shades_of_color, color.getShade()));
-        textViewShadesOfColor.setTextColor(color.getColor());
-        linearLayoutSecondaryColorsTrayContainer.removeAllViews();
+        selectedPrimaryColor = color;
+        textViewColorShades.setText(getString(R.string.shades_of_color, color.getShade()));
+        textViewColorShades.setTextColor(color.getColor());
+        linearLayoutColorsTrayContainer.removeAllViews();
 
-        int containerWidth = ((View) linearLayoutSecondaryColorsTrayContainer.getParent()).getWidth();
+        int containerWidth = ((View) linearLayoutColorsTrayContainer.getParent()).getWidth();
         int colorBoxSize = getResources().getDimensionPixelSize(R.dimen.color_box_size);
         int colorBoxMargin = getResources().getDimensionPixelSize(R.dimen.margin_small);
         int boxLimit = (int)((float)(containerWidth + colorBoxMargin) / (float)(colorBoxMargin + colorBoxSize + colorBoxMargin));
@@ -1448,7 +1322,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 linearLayoutColorsTray.setVisibility(View.GONE);
                 linearLayoutColorsTray.setGravity(Gravity.CENTER_HORIZONTAL);
                 LinearLayout.LayoutParams layoutParamsColorsTray = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                linearLayoutSecondaryColorsTrayContainer.addView(linearLayoutColorsTray, layoutParamsColorsTray);
+                linearLayoutColorsTrayContainer.addView(linearLayoutColorsTray, layoutParamsColorsTray);
             }
 
             ImageView imageView = new ImageView(this);
@@ -1457,7 +1331,6 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
             imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    imageViewSymphonyColors.setColorFilter(secondaryColor.getColor());
                     secondaryColorClicked(secondaryColor);
                 }
             });
@@ -1471,11 +1344,11 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     }
 
     private void showSecondaryColors(final int iteration) {
-        if (iteration >= linearLayoutSecondaryColorsTrayContainer.getChildCount()) {
+        if (iteration >= linearLayoutColorsTrayContainer.getChildCount()) {
             return;
         }
-        linearLayoutSecondaryColorsTrayContainer.getChildAt(iteration).setVisibility(View.VISIBLE);
-        linearLayoutSecondaryColorsTrayContainer.post(new Runnable() {
+        linearLayoutColorsTrayContainer.getChildAt(iteration).setVisibility(View.VISIBLE);
+        linearLayoutColorsTrayContainer.post(new Runnable() {
             @Override
             public void run() {
                 showSecondaryColors(iteration + 1);
@@ -1484,10 +1357,11 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     }
 
     private void showProductColorsTray(ProductColor product) {
-        textViewColorsOfProduct.setText(getString(R.string.colors_of_product, product.getName()));
-        linearLayoutProductColorsTrayContainer.removeAllViews();
+        selectedProductColor = product;
+        textViewColorShades.setText(getString(R.string.colors_of_product, product.getName()));
+        linearLayoutColorsTrayContainer.removeAllViews();
 
-        int containerWidth = ((View) linearLayoutProductColorsTrayContainer.getParent().getParent()).getWidth();
+        int containerWidth = ((View) linearLayoutColorsTrayContainer.getParent().getParent()).getWidth();
         int colorBoxSize = getResources().getDimensionPixelSize(R.dimen.color_box_size);
         int colorBoxMargin = getResources().getDimensionPixelSize(R.dimen.margin_small);
         int boxLimit = (int)((float)(containerWidth + colorBoxMargin) / (float)(colorBoxMargin + colorBoxSize + colorBoxMargin));
@@ -1503,7 +1377,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 linearLayoutColorsTray.setVisibility(View.GONE);
                 linearLayoutColorsTray.setGravity(Gravity.CENTER_HORIZONTAL);
                 LinearLayout.LayoutParams layoutParamsColorsTray = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                linearLayoutProductColorsTrayContainer.addView(linearLayoutColorsTray, layoutParamsColorsTray);
+                linearLayoutColorsTrayContainer.addView(linearLayoutColorsTray, layoutParamsColorsTray);
             }
 
             final ImageView imageView = new ImageView(this);
@@ -1512,7 +1386,6 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
             imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    imageViewProductColors.setColorFilter(secondaryColor.getColor());
                     secondaryColorClicked(secondaryColor);
                 }
             });
@@ -1526,11 +1399,11 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     }
 
     private void showProductColors(final int iteration) {
-        if (iteration >= linearLayoutProductColorsTrayContainer.getChildCount()) {
+        if (iteration >= linearLayoutColorsTrayContainer.getChildCount()) {
             return;
         }
-        linearLayoutProductColorsTrayContainer.getChildAt(iteration).setVisibility(View.VISIBLE);
-        linearLayoutProductColorsTrayContainer.post(new Runnable() {
+        linearLayoutColorsTrayContainer.getChildAt(iteration).setVisibility(View.VISIBLE);
+        linearLayoutColorsTrayContainer.post(new Runnable() {
             @Override
             public void run() {
                 showProductColors(iteration + 1);
@@ -1540,7 +1413,6 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
 
     private void primaryColorClicked(PrimaryColor color) {
         if (color.isTrayOpen()) {
-            imageViewSymphonyColors.setColorFilter(color.getColor());
             secondaryColorClicked(color);
             return;
         }
@@ -1563,8 +1435,8 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     }
 
     private void secondaryColorClicked(SecondaryColor color) {
-        hideColorsTray();
-        hideProductsTray();
+        hideTraysView();
+        imageViewColorSelection.setColorFilter(color.getColor());
 
         if (cameraFragment != null) {
             cameraFragment.setFillColor(color.getColor());
@@ -1579,8 +1451,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
      */
 
     private void clearColorSelections() {
-        imageViewSymphonyColors.clearColorFilter();
-        imageViewProductColors.clearColorFilter();
+        imageViewColorSelection.clearColorFilter();
         if (cameraFragment != null) {
             cameraFragment.setFillColor(-1);
         }
@@ -1589,11 +1460,12 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         }
     }
 
-    private void showStillScreen(final Mat rgba) {
+    private void showStillScreen(final Mat rgba, final Mat mask) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 StillFragment.mRgba = rgba;
+                StillFragment.mFloodMask = mask;
                 showFragment(FRAGMENT_INDEX_STILL);
             }
         });
@@ -1624,14 +1496,15 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     }
 
     @Override
-    public void onInteraction(int type, Object obj) {
+    public void onInteraction(int type, Object... objs) {
         switch (type) {
             case CLEAR_COLOR_SELECTIONS:
                 clearColorSelections();
                 break;
             case SHOW_STILL_SCREEN:
-                Mat rgba = (Mat) obj;
-                showStillScreen(rgba);
+                Mat rgba = (Mat) objs[0];
+                Mat mask = (Mat) objs[1];
+                showStillScreen(rgba, mask);
                 break;
         }
     }
@@ -1670,89 +1543,6 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         }
     };
 
-    private SeekBar.OnSeekBarChangeListener dilateChangeListener = new SeekBar.OnSeekBarChangeListener() {
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            int tag = (int) seekBar.getTag();
-            if (cameraFragment != null) {
-                switch (tag) {
-                    case 0:
-                        cameraFragment.setModes(progress, -1, -1, -1, -1);
-                        textViewDilate.setText(getString(R.string.dilate)+": "+(progress==0?"None":progress));
-                        break;
-                    case 1:
-                        cameraFragment.setModes(-1, -1, progress+1, -1, -1);
-                        textViewDilateSize.setText(getString(R.string.size)+": "+(progress+1));
-                        break;
-                }
-            }
-        }
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-        }
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-        }
-    };
-
-    private SeekBar.OnSeekBarChangeListener cannyChangeListener = new SeekBar.OnSeekBarChangeListener() {
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            int tag = (int) seekBar.getTag();
-            if (cameraFragment != null) {
-                switch (tag) {
-                    case 0:
-                        cameraFragment.setCannyControls(progress + 1, -1, -1, -1, checkBoxL2Gradient.isChecked());
-                        textViewKernelSize.setText(getString(R.string.kernel_size)+": "+(progress+1));
-                        break;
-                    case 1:
-                        cameraFragment.setCannyControls(-1, progress + 1, -1, -1, checkBoxL2Gradient.isChecked());
-                        textViewThreshold.setText(getString(R.string.threshold)+": "+(progress+1));
-                        break;
-                    case 2:
-                        double ratio = ((double) progress + 1) * 0.01 + 2;
-                        cameraFragment.setCannyControls(-1, -1, ratio, -1, checkBoxL2Gradient.isChecked());
-                        textViewThresholdRatio.setText(getString(R.string.threshold_ratio)+": "+ratio);
-                        break;
-                    case 3:
-                        int sobel = progress * 2 + 3;
-                        cameraFragment.setCannyControls(-1, -1, -1, sobel, checkBoxL2Gradient.isChecked());
-                        textViewSobelSize.setText(getString(R.string.sobel_size)+": "+sobel);
-                        break;
-                }
-            }
-        }
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-        }
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-        }
-    };
-
-    private AdapterView.OnItemSelectedListener modeSelectedListener = new AdapterView.OnItemSelectedListener() {
-        @Override
-        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            int tag = (int) parent.getTag();
-            if (cameraFragment != null) {
-                switch (tag) {
-                    case 0:
-                        cameraFragment.setModes(-1, position, -1, -1, -1);
-                        break;
-                    case 1:
-                        cameraFragment.setModes(-1, -1, -1, position, -1);
-                        break;
-                    case 2:
-                        cameraFragment.setModes(-1, -1, -1, -1, position+1);
-                        break;
-                }
-            }
-        }
-        @Override
-        public void onNothingSelected(AdapterView<?> parent) {
-        }
-    };
-
     private AdapterView.OnItemSelectedListener optionSelectedListener = new AdapterView.OnItemSelectedListener() {
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -1760,21 +1550,9 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
             seekBarHue.setProgress(options.getHue());
             seekBarSat.setProgress(options.getSat());
             seekBarVal.setProgress(options.getVal());
-            seekBarDilate.setProgress(options.getDilate());
-            spinnerStructure.setSelection(options.getStructure());
-            seekBarDilateSize.setProgress(options.getSize());
-            spinnerMode.setSelection(options.getMode());
-            spinnerMethod.setSelection(options.getMethod());
         }
         @Override
         public void onNothingSelected(AdapterView<?> parent) {
-        }
-    };
-
-    private CompoundButton.OnCheckedChangeListener checkedChangeListener = new CompoundButton.OnCheckedChangeListener() {
-        @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            cameraFragment.setCannyControls(-1, -1, -1, -1, isChecked);
         }
     };
 

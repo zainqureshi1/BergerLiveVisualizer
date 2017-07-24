@@ -32,6 +32,7 @@ public class StillFragment extends Fragment {
     //private final String TAG = "StillFragment";
 
     public static Mat mRgba;
+    public static Mat mFloodMask;
 
     //private OnFragmentInteractionListener onFragmentInteractionListener;
 

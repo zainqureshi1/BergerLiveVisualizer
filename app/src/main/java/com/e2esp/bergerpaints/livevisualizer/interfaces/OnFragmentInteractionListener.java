@@ -9,6 +9,6 @@ public interface OnFragmentInteractionListener {
     int CLEAR_COLOR_SELECTIONS = 1000;
     int SHOW_STILL_SCREEN = 1001;
 
-    void onInteraction(int type, Object obj);
+    void onInteraction(int type, Object... objs);
 
 }
