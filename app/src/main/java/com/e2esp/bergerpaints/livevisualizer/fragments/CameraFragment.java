@@ -41,8 +41,6 @@ import java.util.List;
 public class CameraFragment extends Fragment implements View.OnTouchListener {
     private final String TAG = "CameraFragment";
 
-    private static CameraFragment instance;
-
     private OnFragmentInteractionListener onFragmentInteractionListener;
 
     private boolean isBlobColorSelected = false;
@@ -67,7 +65,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
     }
 
     public static CameraFragment newInstance() {
-        instance = new CameraFragment();
+        CameraFragment instance = new CameraFragment();
         return instance;
     }
 

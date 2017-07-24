@@ -1,11 +1,16 @@
 package com.e2esp.bergerpaints.livevisualizer.utils;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.Color;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.widget.Toast;
 
+import com.e2esp.bergerpaints.livevisualizer.R;
 import com.e2esp.bergerpaints.livevisualizer.models.Options;
 
 import org.opencv.android.Utils;
@@ -14,6 +19,9 @@ import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 
 /**
@@ -31,7 +39,7 @@ public class Utility {
         // 76 - 100 = 128 - 255
         double color;
         if (percent <= 10) {
-            color = 0 + (5 - 0) * ((percent - 0.0) / (10.0 - 0.0));
+            color = 0 + 5 * ((percent - 0.0) / (10.0 - 0.0));
         } else if (percent <= 25) {
             color = 6 + (20 - 6) * ((percent - 11.0) / (25.0 - 11.0));
         } else if (percent <= 50) {
@@ -49,7 +57,7 @@ public class Utility {
         int percent;
         color = color / maxColor * 255.0;
         if (color <= 5) {
-            percent = (int) (0 + (10 - 0) * ((color - 0.0) / (5.0 - 0.0)));
+            percent = (int) (0 + 10 * ((color - 0.0) / (5.0 - 0.0)));
         } else if (color <= 20) {
             percent = (int) (11 + (25 - 11) * ((color - 6.0) / (20.0 - 6.0)));
         } else if (color <= 50) {
@@ -73,7 +81,7 @@ public class Utility {
         return new int[] {
                 (color >> 16) & 0xFF,
                 (color >> 8) & 0xFF,
-                (color >> 0) & 0xFF};
+                color & 0xFF};
     }
 
     public static int colorRgbToInt(int r, int g, int b) {
@@ -93,8 +101,7 @@ public class Utility {
         Mat pointMatRgb = new Mat(1, 1, CvType.CV_8UC3, rgbColor);
         Imgproc.cvtColor(pointMatRgb, pointMatHsv, Imgproc.COLOR_RGB2HSV, 3);
         double[] pointHsv = pointMatHsv.get(0, 0);
-        Scalar hsvColor = new Scalar(pointHsv);
-        return hsvColor;
+        return new Scalar(pointHsv);
     }
 
     public static void setChannel(Mat mat, int channel, double value) {
@@ -125,13 +132,21 @@ public class Utility {
         return mat;
     }
 
+    public static void showToast(Context context, int stringRes) {
+        showToast(context, context.getString(stringRes));
+    }
+
+    public static void showToast(Context context, String text) {
+        Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
+    }
+
     public static void saveOptions(Context context, Options options) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         int savedOptionsCount = sharedPreferences.getInt("SavedOptionsCount", 0);
         savedOptionsCount++;
         sharedPreferences.edit()
                 .putString("SavedOption"+savedOptionsCount, options.getTextToSave())
-                .putInt("SavedOptionsCount", savedOptionsCount).commit();
+                .putInt("SavedOptionsCount", savedOptionsCount).apply();
     }
 
     public static ArrayList<Options> loadOptions(Context context) {
@@ -143,6 +158,45 @@ public class Utility {
             options.add(new Options(optionsString));
         }
         return options;
+    }
+
+    public static File saveToStorage(Context context, Bitmap bitmap, String fileName) {
+        try {
+            File appFolder = new File(Environment.getExternalStorageDirectory(), context.getString(R.string.app_name));
+            if (!appFolder.exists() || !appFolder.isDirectory()) {
+                if (!appFolder.mkdir()) {
+                    return null;
+                }
+            }
+
+            File file = new File(appFolder, fileName);
+            file.createNewFile();
+
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 0, byteArrayOutputStream);
+            byte[] byteArray = byteArrayOutputStream.toByteArray();
+
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            fileOutputStream.write(byteArray);
+            fileOutputStream.flush();
+            fileOutputStream.close();
+            return file;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+    public static void broadcastGalleryUpdate(Context context, File file) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            Intent scanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            Uri contentUri = Uri.fromFile(file);
+            scanIntent.setData(contentUri);
+            context.sendBroadcast(scanIntent);
+        } else {
+            Intent intent = new Intent(Intent.ACTION_MEDIA_MOUNTED, Uri.parse("file://" + Environment.getExternalStorageDirectory()));
+            context.sendBroadcast(intent);
+        }
     }
 
 }
