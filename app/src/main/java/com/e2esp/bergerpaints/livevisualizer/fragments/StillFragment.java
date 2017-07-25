@@ -20,9 +20,14 @@ import com.e2esp.bergerpaints.livevisualizer.utils.PermissionManager;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
 import com.e2esp.bergerpaints.livevisualizer.views.DrawingView;
 
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Zain on 6/15/2017.
@@ -36,9 +41,9 @@ public class StillFragment extends Fragment {
 
     //private OnFragmentInteractionListener onFragmentInteractionListener;
 
-    private Bitmap mBitmap;
-
     private DrawingView drawingView;
+
+    private boolean isWatershedding;
 
     public StillFragment() {
     }
@@ -72,9 +77,9 @@ public class StillFragment extends Fragment {
         ViewGroup viewContainerDrawing = (ViewGroup) view.findViewById(R.id.viewContainerDrawing);
 
         if (mRgba != null) {
-            mBitmap = Utility.matToBitmap(mRgba);
-            drawingView = new DrawingView(getContext(), mRgba, mBitmap);
-            ViewGroup.LayoutParams drawingParams = new ViewGroup.LayoutParams(mBitmap.getWidth(), mBitmap.getHeight());
+            Bitmap bitmap = Utility.matToBitmap(mRgba);
+            drawingView = new DrawingView(getContext(), mRgba, bitmap);
+            ViewGroup.LayoutParams drawingParams = new ViewGroup.LayoutParams(bitmap.getWidth(), bitmap.getHeight());
             viewContainerDrawing.addView(drawingView, drawingParams);
         }
 
@@ -84,6 +89,23 @@ public class StillFragment extends Fragment {
     public void setFillColor(int color) {
         if (drawingView != null) {
             drawingView.setFillColor(color);
+        }
+        if (!isWatershedding && color != -1) {
+            applyFloodFill(color);
+        }
+    }
+
+    public void stopWatershedding() {
+        isWatershedding = false;
+        if (drawingView != null) {
+            drawingView.stopWatershedding();
+        }
+    }
+
+    public void startWatershedding() {
+        isWatershedding = true;
+        if (drawingView != null) {
+            drawingView.startWatershedding();
         }
     }
 
@@ -125,7 +147,8 @@ public class StillFragment extends Fragment {
         PermissionManager.getInstance().checkPermissionRequest(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE, 121, "App require permission to save image", new PermissionManager.Callback() {
             @Override
             public void onGranted() {
-                File file = Utility.saveToStorage(getContext(), mBitmap, fileName);
+                Bitmap bitmap = Utility.matToBitmap(mRgba);
+                File file = Utility.saveToStorage(getContext(), bitmap, fileName);
                 if (file != null) {
                     Utility.showToast(getContext(), "Image saved successfully in storage.");
                     Utility.broadcastGalleryUpdate(getContext(), file);
@@ -138,6 +161,56 @@ public class StillFragment extends Fragment {
                 Toast.makeText(getContext(), "Write permission denied", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void applyFloodFill(int color) {
+        int[] rgb = Utility.colorIntToRgb(color);
+        Scalar colorRgb = new Scalar(rgb[0], rgb[1], rgb[2]);
+        Scalar colorHsv = Utility.convertScalarRgb2Hsv(colorRgb);
+
+        // Convert RGBA To HSV
+        Mat orgHsv = new Mat();
+        Imgproc.cvtColor(mRgba, orgHsv, Imgproc.COLOR_RGB2HSV);
+
+        // Change H and S channels to Fill Color using Flood Mask
+        Mat destHsv = changeHS(orgHsv, colorHsv, mFloodMask);
+
+        // Convert HSV back to RGB
+        Imgproc.cvtColor(destHsv, mRgba, Imgproc.COLOR_HSV2RGB);
+        orgHsv.release();
+        destHsv.release();
+
+        Bitmap bitmap = Utility.matToBitmap(mRgba);
+        drawingView.changeImage(bitmap);
+    }
+
+    private Mat changeHS(Mat srcHsv, Scalar fillHsv, Mat mask) {
+        // Split src into HSV channels
+        List<Mat> hsvChannels = new ArrayList<>();
+        Core.split(srcHsv, hsvChannels);
+
+        // Separate H and S channels into separate Mat
+        List<Mat> hsChannels = new ArrayList<>();
+        hsChannels.add(hsvChannels.get(0));
+        hsChannels.add(hsvChannels.get(1));
+        Mat hsMat = new Mat();
+        Core.merge(hsChannels, hsMat);
+
+        // Set H and S channels to fill color using given mask
+        hsMat.setTo(fillHsv, mask);
+        Core.split(hsMat, hsChannels);
+        hsMat.release();
+
+        // Merge new H, S and old V channels into single Mat
+        hsvChannels.set(0, hsChannels.get(0));
+        hsvChannels.set(1, hsChannels.get(1));
+        Mat destHsv = new Mat();
+        Core.merge(hsvChannels, destHsv);
+        for (Mat channel : hsvChannels) {
+            channel.release();
+        }
+
+        return destHsv;
     }
 
     @Override

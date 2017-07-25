@@ -16,6 +16,7 @@
     <dimen name="margin_huge">35dp</dimen>
     <dimen name="margin_giant">50dp</dimen>
 
+    <dimen name="text_size_tiny">4sp</dimen>
     <dimen name="text_size_small">8sp</dimen>
     <dimen name="text_size_small_upper">10sp</dimen>
     <dimen name="text_size_medium_lower">12sp</dimen>

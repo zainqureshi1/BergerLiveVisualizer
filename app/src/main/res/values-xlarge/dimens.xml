@@ -16,6 +16,7 @@
     <dimen name="margin_huge">92dp</dimen>
     <dimen name="margin_giant">134dp</dimen>
 
+    <dimen name="text_size_tiny">11sp</dimen>
     <dimen name="text_size_small">22sp</dimen>
     <dimen name="text_size_small_upper">26sp</dimen>
     <dimen name="text_size_medium_lower">32sp</dimen>

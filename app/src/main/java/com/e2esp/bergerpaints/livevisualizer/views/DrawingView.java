@@ -25,17 +25,21 @@ public class DrawingView extends View {
     private Mat mMat;
     private Scalar mFillColorRgb;
     private Bitmap mBitmap;
+    private Bitmap mInitialBitmap;
     private Canvas mCanvas;
     private Path mPath;
     private Paint mPaint;
     private Paint mBitmapPaint;
     private WatershedSegmenter watershedSegmenter;
 
+    private boolean isWatershedding;
+
     public DrawingView(Context c, Mat mat, Bitmap bitmap) {
         super(c);
         mMat = mat;
         mPath = new Path();
         mBitmap = bitmap;
+        mInitialBitmap = bitmap;
         mBitmapPaint = new Paint(Paint.DITHER_FLAG);
 
         mPaint = new Paint();
@@ -53,8 +57,6 @@ public class DrawingView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-
-        //mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         mCanvas = new Canvas(mBitmap);
     }
 
@@ -64,6 +66,21 @@ public class DrawingView extends View {
 
         canvas.drawBitmap(mBitmap, 0, 0, mBitmapPaint);
         canvas.drawPath(mPath, mPaint);
+    }
+
+    public void startWatershedding() {
+        isWatershedding = true;
+    }
+
+    public void stopWatershedding() {
+        isWatershedding = false;
+        changeImage(mInitialBitmap);
+    }
+
+    public void changeImage(Bitmap bitmap) {
+        mBitmap = bitmap;
+        mCanvas.setBitmap(mBitmap);
+        invalidate();
     }
 
     private float mX, mY;
@@ -105,6 +122,10 @@ public class DrawingView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (!isWatershedding) {
+            return false;
+        }
+
         float x = event.getX();
         float y = event.getY();
 
@@ -136,9 +157,7 @@ public class DrawingView extends View {
 
     public void watershed() {
         Mat mat = watershedSegmenter.watershed(mMat);
-        mBitmap = Utility.matToBitmap(mat);
-        mCanvas.setBitmap(mBitmap);
-        invalidate();
+        changeImage(Utility.matToBitmap(mat));
     }
 
     public void removeLastLine() {

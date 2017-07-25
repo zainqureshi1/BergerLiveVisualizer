@@ -12,6 +12,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
@@ -25,7 +26,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.e2esp.bergerpaints.livevisualizer.R;
@@ -52,12 +52,10 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private final int FRAGMENT_INDEX_CAMERA = 0;
     private final int FRAGMENT_INDEX_STILL = 1;
 
-    private final int COLORS_TAB_INDEX_PRODUCTS = 0;
-    private final int COLORS_TAB_INDEX_SYMPHONY = 1;
-
     public static final int[] DEFAULT_TOLERANCE = {24, 10, 4};
 
     private ImageView imageViewColorSelection;
+    private AppCompatTextView textViewColorSelectionName;
 
     private AppCompatTextView textViewProductColors;
     private AppCompatTextView textViewSymphonyColors;
@@ -87,17 +85,19 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private View viewContainerActionButtons;
 
     private ImageView imageViewCamera;
-    private ImageView imageViewBrush;
+    private ImageView imageViewCrop;
+    private ImageView imageViewFill;
     private ImageView imageViewUndo;
+    private ImageView imageViewApply;
     private ImageView imageViewSave;
 
     private VerticalSeekBar seekBarHue;
     private VerticalSeekBar seekBarSat;
     private VerticalSeekBar seekBarVal;
 
-    private TextView textViewHue;
-    private TextView textViewSat;
-    private TextView textViewVal;
+    private AppCompatTextView textViewHue;
+    private AppCompatTextView textViewSat;
+    private AppCompatTextView textViewVal;
 
     private View viewContainerFragments;
     private CameraFragment cameraFragment;
@@ -135,6 +135,12 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                     @Override
                     public void run() {
                         showFragment(FRAGMENT_INDEX_CAMERA);
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                selectInitialColor();
+                            }
+                        }, 500);
                     }
                 });
             }
@@ -160,6 +166,9 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 }
             }
         });
+
+        textViewColorSelectionName = (AppCompatTextView) findViewById(R.id.textViewColorSelectionName);
+        textViewColorSelectionName.setText("");
 
         textViewProductColors = (AppCompatTextView) findViewById(R.id.textViewProductColors);
         textViewProductColors.setOnClickListener(new View.OnClickListener() {
@@ -242,25 +251,39 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 rightOptionAction(0);
             }
         });
-        imageViewBrush = (ImageView) findViewById(R.id.imageViewBrush);
-        imageViewBrush.setOnClickListener(new View.OnClickListener() {
+        imageViewCrop = (ImageView) findViewById(R.id.imageViewCrop);
+        imageViewCrop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 rightOptionAction(1);
+            }
+        });
+        imageViewFill = (ImageView) findViewById(R.id.imageViewFill);
+        imageViewFill.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rightOptionAction(2);
             }
         });
         imageViewUndo = (ImageView) findViewById(R.id.imageViewUndo);
         imageViewUndo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                rightOptionAction(2);
+                rightOptionAction(3);
+            }
+        });
+        imageViewApply = (ImageView) findViewById(R.id.imageViewApply);
+        imageViewApply.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rightOptionAction(4);
             }
         });
         imageViewSave = (ImageView) findViewById(R.id.imageViewSave);
         imageViewSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                rightOptionAction(3);
+                rightOptionAction(5);
             }
         });
 
@@ -281,9 +304,9 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         seekBarVal.setTag(2);
         seekBarVal.setOnSeekBarChangeListener(toleranceChangeListener);
 
-        textViewHue = (TextView) findViewById(R.id.textViewHue);
-        textViewSat = (TextView) findViewById(R.id.textViewSat);
-        textViewVal = (TextView) findViewById(R.id.textViewVal);
+        textViewHue = (AppCompatTextView) findViewById(R.id.textViewHue);
+        textViewSat = (AppCompatTextView) findViewById(R.id.textViewSat);
+        textViewVal = (AppCompatTextView) findViewById(R.id.textViewVal);
 
         textViewHue.setText("H:"+DEFAULT_TOLERANCE[0]);
         textViewSat.setText("S:"+DEFAULT_TOLERANCE[1]);
@@ -292,22 +315,34 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
 
     private void rightOptionAction(int index) {
         switch (index) {
-            case 0:
+            case 0: // Take Picture
                 if (cameraFragment != null) {
                     cameraFragment.takePicture();
                 }
                 break;
-            case 1:
+            case 1: // Start Cropping
                 if (stillFragment != null) {
-                    stillFragment.applyWatershedding();
+                    stillFragment.startWatershedding();
+                    showActionButtons(true);
                 }
                 break;
-            case 2:
+            case 2: // Start Filling
+                if (stillFragment != null) {
+                    stillFragment.stopWatershedding();
+                    showActionButtons(false);
+                }
+                break;
+            case 3: // Undo Cropping
                 if (stillFragment != null) {
                     stillFragment.undoWatershedding();
                 }
                 break;
-            case 3:
+            case 4: // Apply Cropping
+                if (stillFragment != null) {
+                    stillFragment.applyWatershedding();
+                }
+                break;
+            case 5: // Save Image
                 if (stillFragment != null) {
                     stillFragment.saveImage(currentSelectionsToOptions());
                 }
@@ -327,7 +362,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_save);
 
-        TextView textView = (TextView) dialog.findViewById(R.id.textViewSave);
+        AppCompatTextView textView = (AppCompatTextView) dialog.findViewById(R.id.textViewSave);
         final EditText editText = (EditText) dialog.findViewById(R.id.editTextSave);
         Button button = (Button) dialog.findViewById(R.id.buttonSave);
 
@@ -382,21 +417,35 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 getSupportFragmentManager().beginTransaction().replace(R.id.viewContainerFragments, getCameraFragment()).commit();
                 viewContainerLeftOptions.setVisibility(View.VISIBLE);
                 imageViewCamera.setVisibility(View.VISIBLE);
-                imageViewBrush.setVisibility(View.GONE);
+                imageViewCrop.setVisibility(View.GONE);
+                imageViewFill.setVisibility(View.GONE);
                 imageViewUndo.setVisibility(View.GONE);
-                imageViewSave.setVisibility(View.GONE);
+                imageViewApply.setVisibility(View.GONE);
+                imageViewSave.setVisibility(View.INVISIBLE);
                 break;
             case FRAGMENT_INDEX_STILL:
                 getSupportFragmentManager().beginTransaction().replace(R.id.viewContainerFragments, getStillFragment()).commit();
                 viewContainerLeftOptions.setVisibility(View.INVISIBLE);
                 imageViewCamera.setVisibility(View.GONE);
-                imageViewBrush.setVisibility(View.VISIBLE);
-                imageViewUndo.setVisibility(View.VISIBLE);
                 imageViewSave.setVisibility(View.VISIBLE);
+                showActionButtons(false);
                 break;
         }
         visibleFragmentIndex = index;
         clearColorSelections();
+    }
+
+    private void showActionButtons(boolean cropping) {
+        imageViewCrop.setVisibility(cropping ? View.GONE : View.VISIBLE);
+        imageViewFill.setVisibility(cropping ? View.VISIBLE : View.GONE);
+        imageViewUndo.setVisibility(cropping ? View.VISIBLE : View.GONE);
+        imageViewApply.setVisibility(cropping ? View.VISIBLE : View.GONE);
+    }
+
+    private void selectInitialColor() {
+        if (allColorsList.size() > 2) {
+            secondaryColorClicked(allColorsList.get(2));
+        }
     }
 
     /*
@@ -1306,6 +1355,8 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         textViewColorShades.setTextColor(color.getColor());
         linearLayoutColorsTrayContainer.removeAllViews();
 
+        float textSize = getResources().getDimension(R.dimen.text_size_small);
+        int textColor = getResources().getColor(R.color.black);
         int containerWidth = ((View) linearLayoutColorsTrayContainer.getParent()).getWidth();
         int colorBoxSize = getResources().getDimensionPixelSize(R.dimen.color_box_size);
         int colorBoxMargin = getResources().getDimensionPixelSize(R.dimen.margin_small);
@@ -1335,9 +1386,21 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 }
             });
 
-            LinearLayout.LayoutParams imageViewParams = new LinearLayout.LayoutParams(colorBoxSize, colorBoxSize);
-            imageViewParams.setMargins(colorBoxMargin, colorBoxMargin, colorBoxMargin, colorBoxMargin);
-            linearLayoutColorsTray.addView(imageView, imageViewParams);
+            AppCompatTextView textView = new AppCompatTextView(this);
+            textView.setGravity(Gravity.CENTER);
+            textView.setLines(1);
+            textView.setText(secondaryColor.getName());
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+            textView.setTextColor(textColor);
+
+            LinearLayout container = new LinearLayout(this);
+            container.setOrientation(LinearLayout.VERTICAL);
+            container.addView(imageView, new LinearLayout.LayoutParams(colorBoxSize, colorBoxSize));
+            container.addView(textView, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+            LinearLayout.LayoutParams containerParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            containerParams.setMargins(colorBoxMargin, colorBoxMargin, colorBoxMargin, colorBoxMargin);
+            linearLayoutColorsTray.addView(container, containerParams);
         }
 
         showSecondaryColors(0);
@@ -1437,6 +1500,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private void secondaryColorClicked(SecondaryColor color) {
         hideTraysView();
         imageViewColorSelection.setColorFilter(color.getColor());
+        textViewColorSelectionName.setText(color.getName()+"\n"+color.getColorCode());
 
         if (cameraFragment != null) {
             cameraFragment.setFillColor(color.getColor());
@@ -1452,6 +1516,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
 
     private void clearColorSelections() {
         imageViewColorSelection.clearColorFilter();
+        textViewColorSelectionName.setText("");
         if (cameraFragment != null) {
             cameraFragment.setFillColor(-1);
         }

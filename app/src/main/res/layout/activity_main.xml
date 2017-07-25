@@ -61,7 +61,7 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <TextView
+                <android.support.v7.widget.AppCompatTextView
                     android:id="@+id/textViewHue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -83,7 +83,7 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <TextView
+                <android.support.v7.widget.AppCompatTextView
                     android:id="@+id/textViewSat"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -105,7 +105,7 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <TextView
+                <android.support.v7.widget.AppCompatTextView
                     android:id="@+id/textViewVal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -139,11 +139,34 @@
             android:layout_alignParentTop="true"
             android:src="@drawable/color_box" />
 
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="@dimen/color_box_size"
+            android:layout_height="@dimen/color_box_size"
+            android:layout_alignParentTop="true"
+            android:padding="@dimen/margin_tiny"
+            android:gravity="center"
+            android:text="@string/tap_to_change_color"
+            android:textColor="@color/white"
+            android:textSize="@dimen/text_size_tiny"/>
+
+        <android.support.v7.widget.AppCompatTextView
+            android:id="@+id/textViewColorSelectionName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/imageViewColorSelection"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:text="@string/colors"
+            android:textColor="@color/white"
+            android:textSize="@dimen/text_size_small"/>
+
         <LinearLayout
             android:id="@+id/viewContainerActionButtons"
             android:layout_width="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/textViewColorSelectionName"
+            android:layout_above="@+id/imageViewSave"
+            android:gravity="center"
             android:orientation="vertical" >
 
             <ImageView
@@ -153,10 +176,19 @@
                 android:src="@drawable/icon_camera" />
 
             <ImageView
-                android:id="@+id/imageViewBrush"
+                android:id="@+id/imageViewCrop"
                 android:layout_width="@dimen/color_box_size"
                 android:layout_height="@dimen/color_box_size"
-                android:src="@drawable/icon_brush"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:src="@drawable/icon_crop"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/imageViewFill"
+                android:layout_width="@dimen/color_box_size"
+                android:layout_height="@dimen/color_box_size"
+                android:layout_marginBottom="@dimen/margin_large"
+                android:src="@drawable/icon_fill"
                 android:visibility="gone" />
 
             <ImageView
@@ -167,13 +199,21 @@
                 android:visibility="gone" />
 
             <ImageView
-                android:id="@+id/imageViewSave"
+                android:id="@+id/imageViewApply"
                 android:layout_width="@dimen/color_box_size"
                 android:layout_height="@dimen/color_box_size"
-                android:src="@drawable/icon_save"
+                android:src="@drawable/icon_apply"
                 android:visibility="gone" />
 
         </LinearLayout>
+
+        <ImageView
+            android:id="@+id/imageViewSave"
+            android:layout_width="@dimen/color_box_size"
+            android:layout_height="@dimen/color_box_size"
+            android:layout_alignParentBottom="true"
+            android:src="@drawable/icon_save"
+            android:visibility="invisible" />
 
     </RelativeLayout>
 
