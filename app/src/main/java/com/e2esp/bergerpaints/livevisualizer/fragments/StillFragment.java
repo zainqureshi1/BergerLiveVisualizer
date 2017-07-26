@@ -2,6 +2,7 @@ package com.e2esp.bergerpaints.livevisualizer.fragments;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -15,6 +16,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.e2esp.bergerpaints.livevisualizer.R;
+import com.e2esp.bergerpaints.livevisualizer.interfaces.OnFragmentInteractionListener;
+import com.e2esp.bergerpaints.livevisualizer.interfaces.OnWatershedTabChangeListener;
 import com.e2esp.bergerpaints.livevisualizer.models.Options;
 import com.e2esp.bergerpaints.livevisualizer.utils.PermissionManager;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
@@ -39,11 +42,12 @@ public class StillFragment extends Fragment {
     public static Mat mRgba;
     public static Mat mFloodMask;
 
-    //private OnFragmentInteractionListener onFragmentInteractionListener;
+    private OnFragmentInteractionListener onFragmentInteractionListener;
 
     private DrawingView drawingView;
 
     private boolean isWatershedding;
+    private boolean appliedWatershedding;
 
     public StillFragment() {
     }
@@ -52,7 +56,7 @@ public class StillFragment extends Fragment {
         return new StillFragment();
     }
 
-    /*@Override
+    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof OnFragmentInteractionListener) {
@@ -67,7 +71,7 @@ public class StillFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         onFragmentInteractionListener = null;
-    }*/
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -78,7 +82,12 @@ public class StillFragment extends Fragment {
 
         if (mRgba != null) {
             Bitmap bitmap = Utility.matToBitmap(mRgba);
-            drawingView = new DrawingView(getContext(), mRgba, bitmap);
+            drawingView = new DrawingView(getContext(), mRgba, bitmap, new OnWatershedTabChangeListener() {
+                @Override
+                public void onTabSizeChange(int coloredLines, int whiteLines) {
+                    handleCroppingChange(coloredLines, whiteLines);
+                }
+            });
             ViewGroup.LayoutParams drawingParams = new ViewGroup.LayoutParams(bitmap.getWidth(), bitmap.getHeight());
             viewContainerDrawing.addView(drawingView, drawingParams);
         }
@@ -90,8 +99,14 @@ public class StillFragment extends Fragment {
         if (drawingView != null) {
             drawingView.setFillColor(color);
         }
-        if (!isWatershedding && color != -1) {
-            applyFloodFill(color);
+        if (color != -1) {
+            if (!isWatershedding) {
+                if (appliedWatershedding) {
+                    drawingView.changeAppliedColor();
+                } else {
+                    applyFloodFill(color);
+                }
+            }
         }
     }
 
@@ -111,6 +126,7 @@ public class StillFragment extends Fragment {
 
     public void applyWatershedding() {
         drawingView.watershed();
+        appliedWatershedding = true;
     }
 
     public void undoWatershedding() {
@@ -164,6 +180,10 @@ public class StillFragment extends Fragment {
     }
 
     private void applyFloodFill(int color) {
+        if (mFloodMask.cols() <= 0 || mFloodMask.rows() <= 0) {
+            return;
+        }
+
         int[] rgb = Utility.colorIntToRgb(color);
         Scalar colorRgb = new Scalar(rgb[0], rgb[1], rgb[2]);
         Scalar colorHsv = Utility.convertScalarRgb2Hsv(colorRgb);
@@ -211,6 +231,14 @@ public class StillFragment extends Fragment {
         }
 
         return destHsv;
+    }
+
+    private void handleCroppingChange(int coloredLines, int whiteLines) {
+        if (onFragmentInteractionListener != null) {
+            boolean canUndo = coloredLines > 0 || whiteLines > 0;
+            boolean canApply = coloredLines > 0 && whiteLines > 0;
+            onFragmentInteractionListener.onInteraction(OnFragmentInteractionListener.TOGGLE_CROP_ACTIONS, isWatershedding, canUndo, canApply);
+        }
     }
 
     @Override

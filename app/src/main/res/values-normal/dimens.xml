@@ -5,6 +5,7 @@
 
     <dimen name="color_box_size">53dp</dimen>
     <dimen name="product_box_size">106dp</dimen>
+    <dimen name="action_button_size">40dp</dimen>
 
     <dimen name="seek_bars_height">200dp</dimen>
 

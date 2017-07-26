@@ -10,6 +10,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.e2esp.bergerpaints.livevisualizer.detectors.WatershedSegmenter;
+import com.e2esp.bergerpaints.livevisualizer.interfaces.OnWatershedTabChangeListener;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
 
 import org.opencv.core.Mat;
@@ -34,12 +35,12 @@ public class DrawingView extends View {
 
     private boolean isWatershedding;
 
-    public DrawingView(Context c, Mat mat, Bitmap bitmap) {
+    public DrawingView(Context c, Mat mat, Bitmap bitmap, OnWatershedTabChangeListener onWatershedTabChangeListener) {
         super(c);
         mMat = mat;
         mPath = new Path();
         mBitmap = bitmap;
-        mInitialBitmap = bitmap;
+        mInitialBitmap = bitmap.copy(bitmap.getConfig(), true);
         mBitmapPaint = new Paint(Paint.DITHER_FLAG);
 
         mPaint = new Paint();
@@ -51,7 +52,7 @@ public class DrawingView extends View {
         mPaint.setStrokeCap(Paint.Cap.ROUND);
         mPaint.setStrokeWidth(5f);
 
-        watershedSegmenter = new WatershedSegmenter(mMat);
+        watershedSegmenter = new WatershedSegmenter(mMat, onWatershedTabChangeListener);
     }
 
     @Override
@@ -74,10 +75,14 @@ public class DrawingView extends View {
 
     public void stopWatershedding() {
         isWatershedding = false;
-        changeImage(mInitialBitmap);
+        changeImage(mInitialBitmap.copy(mInitialBitmap.getConfig(), true));
+        watershedSegmenter.clearColorsTab(false);
     }
 
     public void changeImage(Bitmap bitmap) {
+        if (mBitmap != null) {
+            mBitmap.recycle();
+        }
         mBitmap = bitmap;
         mCanvas.setBitmap(mBitmap);
         invalidate();
@@ -158,14 +163,19 @@ public class DrawingView extends View {
     public void watershed() {
         Mat mat = watershedSegmenter.watershed(mMat);
         changeImage(Utility.matToBitmap(mat));
+        mInitialBitmap = mBitmap.copy(mBitmap.getConfig(), true);
+    }
+
+    public void changeAppliedColor() {
+        Mat mat = watershedSegmenter.coloredWatershed(mMat, Utility.convertScalarRgb2Hsv(mFillColorRgb));
+        changeImage(Utility.matToBitmap(mat));
+        mInitialBitmap = mBitmap.copy(mBitmap.getConfig(), true);
     }
 
     public void removeLastLine() {
         Bitmap previousBitmap = watershedSegmenter.removeLastLine();
         if (previousBitmap != null) {
-            mBitmap = previousBitmap;
-            mCanvas.setBitmap(mBitmap);
-            invalidate();
+            changeImage(previousBitmap);
         }
     }
 

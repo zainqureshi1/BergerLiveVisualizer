@@ -3,6 +3,7 @@ package com.e2esp.bergerpaints.livevisualizer.detectors;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import com.e2esp.bergerpaints.livevisualizer.interfaces.OnWatershedTabChangeListener;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
 
 import org.opencv.core.Core;
@@ -28,30 +29,24 @@ public class WatershedSegmenter {
 
     private Point previousPoint;
 
-    private Mat markers;
     private Mat markersMask;
-    private Mat wsImage;
-
-    private List<MatOfPoint> contours;
-    private MatOfInt4 hierarchy;
+    private Mat appliedMarkersMask;
 
     private List<SegmentColor> colorTab;
-    private Random random;
+    private List<SegmentColor> appliedColorTab;
 
-    private Mat mask;
+    private OnWatershedTabChangeListener onTabChangeListener;
 
-    public WatershedSegmenter(Mat image) {
-        markers = new Mat();
+    public WatershedSegmenter(Mat image, OnWatershedTabChangeListener onTabChangeListener) {
         markersMask = new Mat();
-        wsImage = new Mat();
-        contours = new ArrayList<>();
-        hierarchy = new MatOfInt4();
+        appliedMarkersMask = new Mat();
         colorTab = new ArrayList<>();
-        random = new Random();
-        mask = new Mat();
+        appliedColorTab = new ArrayList<>();
 
         Imgproc.cvtColor(image, markersMask, Imgproc.COLOR_RGB2GRAY);
         markersMask.setTo(Scalar.all(0));
+
+        this.onTabChangeListener = onTabChangeListener;
     }
 
     public void startLine(Point point, Scalar color, Bitmap bitmap) {
@@ -63,6 +58,7 @@ public class WatershedSegmenter {
             Log.i(TAG, "Adding null color in tab");
             colorTab.add(new SegmentColor(point, null, markersMask.clone(), bitmap));
         }
+        publishTabSizeChange();
     }
 
     public void drawLine(Point point) {
@@ -74,18 +70,34 @@ public class WatershedSegmenter {
         int colors = colorTab.size();
         Bitmap bitmap = null;
         if (colors > 0) {
-            SegmentColor color = colorTab.get(colors - 1);
+            SegmentColor color = colorTab.remove(colors - 1);
             markersMask.release();
             markersMask = color.startingMask;
             bitmap = color.startingBitmap;
-            colorTab.remove(colors - 1);
         }
+        publishTabSizeChange();
         return bitmap;
     }
 
+    private void publishTabSizeChange() {
+        int colored = 0;
+        int white = 0;
+        for (SegmentColor segmentColor: colorTab) {
+            if (segmentColor.color != null) {
+                colored++;
+            } else {
+                white++;
+            }
+        }
+        onTabChangeListener.onTabSizeChange(colored, white);
+    }
+
     public Mat watershed(Mat image) {
-        Imgproc.cvtColor(image, wsImage, Imgproc.COLOR_RGB2HSV);
-        Imgproc.findContours(markersMask, contours, hierarchy,
+        Mat hsvImage = new Mat();
+        Imgproc.cvtColor(image, hsvImage, Imgproc.COLOR_RGB2HSV);
+
+        ArrayList<MatOfPoint> contours = new ArrayList<>();
+        Imgproc.findContours(markersMask, contours, new Mat(),
                 Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
         if (contours.isEmpty()) {
@@ -93,7 +105,7 @@ public class WatershedSegmenter {
             return image;
         }
 
-        markers = new Mat(markersMask.size(), CvType.CV_32S);
+        Mat markers = new Mat(markersMask.size(), CvType.CV_32S);
         markers.setTo(Scalar.all(0));
 
         if (contours.size() != colorTab.size()) {
@@ -112,12 +124,12 @@ public class WatershedSegmenter {
                 }
             }
             Imgproc.drawContours(markers, contours, idx, Scalar.all(mark), -1);//, 8, hierarchy, Integer.MAX_VALUE, new Point());
-            //Imgproc.drawContours(image, contours, idx, colorTab.get(idx).color, 2);//, 8, hierarchy, Integer.MAX_VALUE, new Point());
         }
-        /*int compCount = 0, idx = 0;
-        for( ; idx >= 0; idx = (int) hierarchy.get(0, idx)[0], compCount++) {
-            Imgproc.drawContours(markers, contours, idx, Scalar.all(compCount + 1), -1);//, 8, hierarchy, Integer.MAX_VALUE, new Point());
-        }*/
+
+        for (MatOfPoint contour: contours) {
+            contour.release();
+        }
+        contours.clear();
 
         if (idx == 0) {
             Log.e(TAG, "Idx is zero");
@@ -130,21 +142,16 @@ public class WatershedSegmenter {
         t = System.currentTimeMillis() - t;
         Log.i(TAG, "Imgproc.watershed execution time: " + t + "ms");
 
-        /*Core.inRange(markers, Scalar.all(-1), Scalar.all(-1), mask);
-        wsImage.setTo(new Scalar(0, 0, 255), mask);
-        Core.inRange(markers, Scalar.all(1), Scalar.all(idx + 1), mask);
-        Core.bitwise_not(mask, mask);
-        wsImage.setTo(Scalar.all(0), mask);*/
-
         // Separate H and S channels into separate Mat
         List<Mat> channels = new ArrayList<>();
-        Core.split(wsImage, channels);
+        Core.split(hsvImage, channels);
         List<Mat> hsChannels = new ArrayList<>();
         hsChannels.add(channels.get(0));
         hsChannels.add(channels.get(1));
         Mat hsMat = new Mat();
         Core.merge(hsChannels, hsMat);
 
+        Mat mask = new Mat();
         for (int i = 0 ; i < colorTab.size() ; i++) {
             SegmentColor segmentColor = colorTab.get(i);
             if (segmentColor.color != null) {
@@ -154,18 +161,60 @@ public class WatershedSegmenter {
             Log.i(TAG, "Repainting segment " + segmentColor.mark + " with pixels " + Core.countNonZero(mask) + " to color " + segmentColor.color);
         }
         Core.split(hsMat, hsChannels);
-        colorTab.clear();
+
+        markers.release();
+        mask.release();
+
+        clearColorsTab(true);
+        publishTabSizeChange();
 
         // Merge new H, S and old V channels into single Mat
         channels.set(0, hsChannels.get(0));
         channels.set(1, hsChannels.get(1));
-        Core.merge(channels, wsImage);
+        Core.merge(channels, hsvImage);
         for (Mat channel : channels) {
             channel.release();
         }
-        Imgproc.cvtColor(wsImage, image, Imgproc.COLOR_HSV2RGB);
+        Imgproc.cvtColor(hsvImage, image, Imgproc.COLOR_HSV2RGB);
+        hsvImage.release();
 
         return image;
+    }
+
+    public Mat coloredWatershed(Mat image, Scalar color) {
+        if (appliedColorTab.size() < 2) {
+            return watershed(image);
+        }
+        colorTab.clear();
+        for (SegmentColor segmentColor: appliedColorTab) {
+            if (segmentColor.color != null) {
+                segmentColor.color = color;
+            }
+            colorTab.add(new SegmentColor(segmentColor));
+        }
+        markersMask.release();
+        markersMask = appliedMarkersMask.clone();
+        return watershed(image);
+    }
+
+    public void clearColorsTab(boolean applied) {
+        if (applied) {
+            for (SegmentColor segmentColor: appliedColorTab) {
+                segmentColor.release();
+            }
+            appliedColorTab.clear();
+            appliedMarkersMask.release();
+            appliedMarkersMask = markersMask.clone();
+        }
+        for (SegmentColor segmentColor: colorTab) {
+            if (applied) {
+                appliedColorTab.add(segmentColor);
+            } else {
+                segmentColor.release();
+            }
+        }
+        colorTab.clear();
+        markersMask.setTo(Scalar.all(0));
     }
 
     private class SegmentColor {
@@ -181,6 +230,22 @@ public class WatershedSegmenter {
             this.color = color;
             this.startingMask = startingMask;
             this.startingBitmap = startingBitmap;
+        }
+
+        SegmentColor(SegmentColor other) {
+            this.startPoint = other.startPoint;
+            this.color = other.color;
+            this.startingMask = other.startingMask;
+            this.startingBitmap = other.startingBitmap;
+        }
+
+        private void release() {
+            if (startingMask != null) {
+                startingMask.release();
+            }
+            if (startingBitmap != null) {
+                startingBitmap.recycle();
+            }
         }
 
     }

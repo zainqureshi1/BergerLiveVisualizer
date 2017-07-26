@@ -84,12 +84,12 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private View viewContainerRightOptions;
     private View viewContainerActionButtons;
 
-    private ImageView imageViewCamera;
-    private ImageView imageViewCrop;
-    private ImageView imageViewFill;
-    private ImageView imageViewUndo;
-    private ImageView imageViewApply;
-    private ImageView imageViewSave;
+    private View viewContainerActionCamera;
+    private View viewContainerActionCrop;
+    private View viewContainerActionFill;
+    private View viewContainerActionUndo;
+    private View viewContainerActionApply;
+    private View viewContainerActionSave;
 
     private VerticalSeekBar seekBarHue;
     private VerticalSeekBar seekBarSat;
@@ -105,6 +105,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
 
     private PrimaryColor selectedPrimaryColor;
     private ProductColor selectedProductColor;
+    private SecondaryColor selectedSecondaryColor;
 
     private boolean traysViewVisible;
     private boolean colorsTrayVisible;
@@ -134,13 +135,10 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 new Handler().post(new Runnable() {
                     @Override
                     public void run() {
+                        if (allColorsList.size() > 2) {
+                            selectedSecondaryColor = allColorsList.get(2);
+                        }
                         showFragment(FRAGMENT_INDEX_CAMERA);
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                selectInitialColor();
-                            }
-                        }, 500);
                     }
                 });
             }
@@ -244,43 +242,43 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         viewContainerRightOptions = findViewById(R.id.viewContainerRightOptions);
         viewContainerActionButtons = findViewById(R.id.viewContainerActionButtons);
 
-        imageViewCamera = (ImageView) findViewById(R.id.imageViewCamera);
-        imageViewCamera.setOnClickListener(new View.OnClickListener() {
+        viewContainerActionCamera = findViewById(R.id.viewContainerActionCamera);
+        viewContainerActionCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 rightOptionAction(0);
             }
         });
-        imageViewCrop = (ImageView) findViewById(R.id.imageViewCrop);
-        imageViewCrop.setOnClickListener(new View.OnClickListener() {
+        viewContainerActionCrop = findViewById(R.id.viewContainerActionCrop);
+        viewContainerActionCrop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 rightOptionAction(1);
             }
         });
-        imageViewFill = (ImageView) findViewById(R.id.imageViewFill);
-        imageViewFill.setOnClickListener(new View.OnClickListener() {
+        viewContainerActionFill = findViewById(R.id.viewContainerActionFill);
+        viewContainerActionFill.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 rightOptionAction(2);
             }
         });
-        imageViewUndo = (ImageView) findViewById(R.id.imageViewUndo);
-        imageViewUndo.setOnClickListener(new View.OnClickListener() {
+        viewContainerActionUndo = findViewById(R.id.viewContainerActionUndo);
+        viewContainerActionUndo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 rightOptionAction(3);
             }
         });
-        imageViewApply = (ImageView) findViewById(R.id.imageViewApply);
-        imageViewApply.setOnClickListener(new View.OnClickListener() {
+        viewContainerActionApply = findViewById(R.id.viewContainerActionApply);
+        viewContainerActionApply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 rightOptionAction(4);
             }
         });
-        imageViewSave = (ImageView) findViewById(R.id.imageViewSave);
-        imageViewSave.setOnClickListener(new View.OnClickListener() {
+        viewContainerActionSave = findViewById(R.id.viewContainerActionSave);
+        viewContainerActionSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 rightOptionAction(5);
@@ -323,13 +321,13 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
             case 1: // Start Cropping
                 if (stillFragment != null) {
                     stillFragment.startWatershedding();
-                    showActionButtons(true);
+                    showActionButtons(true, false, false);
                 }
                 break;
             case 2: // Start Filling
                 if (stillFragment != null) {
                     stillFragment.stopWatershedding();
-                    showActionButtons(false);
+                    showActionButtons(false, false, false);
                 }
                 break;
             case 3: // Undo Cropping
@@ -415,37 +413,41 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         switch (index) {
             case FRAGMENT_INDEX_CAMERA:
                 getSupportFragmentManager().beginTransaction().replace(R.id.viewContainerFragments, getCameraFragment()).commit();
-                viewContainerLeftOptions.setVisibility(View.VISIBLE);
-                imageViewCamera.setVisibility(View.VISIBLE);
-                imageViewCrop.setVisibility(View.GONE);
-                imageViewFill.setVisibility(View.GONE);
-                imageViewUndo.setVisibility(View.GONE);
-                imageViewApply.setVisibility(View.GONE);
-                imageViewSave.setVisibility(View.INVISIBLE);
+                viewContainerLeftOptions.setVisibility(View.GONE);
+                viewContainerActionCamera.setVisibility(View.VISIBLE);
+                viewContainerActionCrop.setVisibility(View.GONE);
+                viewContainerActionFill.setVisibility(View.GONE);
+                viewContainerActionUndo.setVisibility(View.GONE);
+                viewContainerActionApply.setVisibility(View.GONE);
+                viewContainerActionSave.setVisibility(View.INVISIBLE);
+                stillFragment = null;
                 break;
             case FRAGMENT_INDEX_STILL:
                 getSupportFragmentManager().beginTransaction().replace(R.id.viewContainerFragments, getStillFragment()).commit();
-                viewContainerLeftOptions.setVisibility(View.INVISIBLE);
-                imageViewCamera.setVisibility(View.GONE);
-                imageViewSave.setVisibility(View.VISIBLE);
-                showActionButtons(false);
+                viewContainerLeftOptions.setVisibility(View.GONE);
+                viewContainerActionCamera.setVisibility(View.GONE);
+                viewContainerActionSave.setVisibility(View.VISIBLE);
+                showActionButtons(false, false, false);
+                cameraFragment = null;
                 break;
         }
         visibleFragmentIndex = index;
         clearColorSelections();
-    }
-
-    private void showActionButtons(boolean cropping) {
-        imageViewCrop.setVisibility(cropping ? View.GONE : View.VISIBLE);
-        imageViewFill.setVisibility(cropping ? View.VISIBLE : View.GONE);
-        imageViewUndo.setVisibility(cropping ? View.VISIBLE : View.GONE);
-        imageViewApply.setVisibility(cropping ? View.VISIBLE : View.GONE);
-    }
-
-    private void selectInitialColor() {
-        if (allColorsList.size() > 2) {
-            secondaryColorClicked(allColorsList.get(2));
+        if (selectedSecondaryColor != null) {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    secondaryColorClicked(selectedSecondaryColor);
+                }
+            }, 500);
         }
+    }
+
+    private void showActionButtons(boolean isCropping, boolean canUndo, boolean canApply) {
+        viewContainerActionCrop.setVisibility(isCropping ? View.GONE : View.VISIBLE);
+        viewContainerActionFill.setVisibility(isCropping ? View.VISIBLE : View.GONE);
+        viewContainerActionUndo.setVisibility(isCropping && canUndo ? View.VISIBLE : View.GONE);
+        viewContainerActionApply.setVisibility(isCropping && canApply ? View.VISIBLE : View.GONE);
     }
 
     /*
@@ -1350,7 +1352,6 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     }
 
     private void showSecondaryColorsTray(PrimaryColor color) {
-        selectedPrimaryColor = color;
         textViewColorShades.setText(getString(R.string.shades_of_color, color.getShade()));
         textViewColorShades.setTextColor(color.getColor());
         linearLayoutColorsTrayContainer.removeAllViews();
@@ -1420,10 +1421,11 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     }
 
     private void showProductColorsTray(ProductColor product) {
-        selectedProductColor = product;
         textViewColorShades.setText(getString(R.string.colors_of_product, product.getName()));
         linearLayoutColorsTrayContainer.removeAllViews();
 
+        float textSize = getResources().getDimension(R.dimen.text_size_small);
+        int textColor = getResources().getColor(R.color.black);
         int containerWidth = ((View) linearLayoutColorsTrayContainer.getParent().getParent()).getWidth();
         int colorBoxSize = getResources().getDimensionPixelSize(R.dimen.color_box_size);
         int colorBoxMargin = getResources().getDimensionPixelSize(R.dimen.margin_small);
@@ -1443,7 +1445,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 linearLayoutColorsTrayContainer.addView(linearLayoutColorsTray, layoutParamsColorsTray);
             }
 
-            final ImageView imageView = new ImageView(this);
+            ImageView imageView = new ImageView(this);
             imageView.setImageResource(R.drawable.color_box);
             imageView.setColorFilter(secondaryColor.getColor());
             imageView.setOnClickListener(new View.OnClickListener() {
@@ -1453,9 +1455,21 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 }
             });
 
-            LinearLayout.LayoutParams imageViewParams = new LinearLayout.LayoutParams(colorBoxSize, colorBoxSize);
-            imageViewParams.setMargins(colorBoxMargin, colorBoxMargin, colorBoxMargin, colorBoxMargin);
-            linearLayoutColorsTray.addView(imageView, imageViewParams);
+            AppCompatTextView textView = new AppCompatTextView(this);
+            textView.setGravity(Gravity.CENTER);
+            textView.setLines(1);
+            textView.setText(secondaryColor.getName());
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+            textView.setTextColor(textColor);
+
+            LinearLayout container = new LinearLayout(this);
+            container.setOrientation(LinearLayout.VERTICAL);
+            container.addView(imageView, new LinearLayout.LayoutParams(colorBoxSize, colorBoxSize));
+            container.addView(textView, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+            LinearLayout.LayoutParams containerParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            containerParams.setMargins(colorBoxMargin, colorBoxMargin, colorBoxMargin, colorBoxMargin);
+            linearLayoutColorsTray.addView(container, containerParams);
         }
 
         showProductColors(0);
@@ -1479,6 +1493,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
             secondaryColorClicked(color);
             return;
         }
+        selectedPrimaryColor = color;
         for (int i = 0; i < activeColorsList.size(); i++) {
             activeColorsList.get(i).setTrayOpen(false);
         }
@@ -1490,6 +1505,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         if (color.isTrayOpen()) {
             return;
         }
+        selectedProductColor = color;
         for (int i = 0; i < activeProductColorsList.size(); i++) {
             activeProductColorsList.get(i).setTrayOpen(false);
         }
@@ -1499,6 +1515,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
 
     private void secondaryColorClicked(SecondaryColor color) {
         hideTraysView();
+        selectedSecondaryColor = color;
         imageViewColorSelection.setColorFilter(color.getColor());
         textViewColorSelectionName.setText(color.getName()+"\n"+color.getColorCode());
 
@@ -1570,6 +1587,12 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 Mat rgba = (Mat) objs[0];
                 Mat mask = (Mat) objs[1];
                 showStillScreen(rgba, mask);
+                break;
+            case TOGGLE_CROP_ACTIONS:
+                boolean isCropping = (boolean) objs[0];
+                boolean canUndo = (boolean) objs[1];
+                boolean canApply = (boolean) objs[2];
+                showActionButtons(isCropping, canUndo, canApply);
                 break;
         }
     }

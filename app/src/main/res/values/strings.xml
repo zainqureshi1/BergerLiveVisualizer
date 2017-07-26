@@ -28,6 +28,11 @@
     <string name="save">Save</string>
 
     <string name="tap_to_change_color">Tap to change Color</string>
+    <string name="capture">Capture</string>
+    <string name="crop">Crop</string>
+    <string name="fill">Fill</string>
+    <string name="undo">Undo</string>
+    <string name="apply">Apply</string>
 
     <string name="press_back_again_to_exit">Press BACK again to exit</string>
 
