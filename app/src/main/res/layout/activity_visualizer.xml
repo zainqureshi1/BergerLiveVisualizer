@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
-    tools:context=".activities.MainActivity">
+    tools:context=".activities.VisualizerActivity">
 
     <FrameLayout
         android:id="@+id/viewContainerFragments"
@@ -12,6 +12,30 @@
         android:layout_alignParentLeft="true"
         android:layout_toLeftOf="@+id/viewContainerRightOptions"
         android:orientation="vertical" />
+
+    <LinearLayout
+        android:id="@+id/viewContainerActionHome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_margin="@dimen/margin_tiny"
+        android:gravity="center_horizontal"
+        android:orientation="vertical" >
+
+        <ImageView
+            android:layout_width="@dimen/action_button_size"
+            android:layout_height="@dimen/action_button_size"
+            android:src="@drawable/icon_home" />
+
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/home"
+            android:textColor="@color/white"
+            android:textSize="@dimen/text_size_small" />
+
+    </LinearLayout>
 
     <!-- Left Options -->
     <LinearLayout

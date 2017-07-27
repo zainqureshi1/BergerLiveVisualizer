@@ -133,6 +133,11 @@ public class StillFragment extends Fragment {
         drawingView.removeLastLine();
     }
 
+    public void saveImage() {
+        String fileName = getString(R.string.app_name)+"_"+System.currentTimeMillis()+".png";
+        saveFile(fileName);
+    }
+
     public void saveImage(final Options options) {
         final Dialog dialog = new Dialog(getContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);

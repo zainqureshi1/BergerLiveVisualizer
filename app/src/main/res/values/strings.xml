@@ -1,6 +1,20 @@
 <resources>
     <string name="app_name">Live Visualizer</string>
 
+    <string name="berger_products">Berger Products</string>
+    <string name="berger_visualizer">Berger Visualizer</string>
+
+    <string name="berger_products_description">Berger is committed to providing the highest quality products, superior service and competitive prices. We provide the most extensive product offering with the widest variety of materials and styling to fit virtually any look or solve any drainage and moisture challenge.</string>
+    <string name="berger_visualizer_description">Berger Visualizer helps you to make your own color schemes for the interior and exterior of your house. It helps you to get an idea of how a particular shade or a combination of paint will look on your wall before you spend any money buying that paint.</string>
+
+    <string name="view_all_products">View All Products</string>
+    <string name="start_visualizing">Start Visualizing</string>
+
+    <string name="learn_more">Learn\nMore</string>
+    <string name="visualize_colors">Visualize\nColors</string>
+
+    <string name="product_description">Product Description</string>
+
     <string name="colors_symphony">Colors Symphony</string>
     <string name="product_colors">Product Colors</string>
 
@@ -24,15 +38,16 @@
     <string name="sobel_size">Sobel Size</string>
     <string name="l2_gradient">L2 Gradient</string>
 
-    <string name="enter_a_name">Enter a name</string>
-    <string name="save">Save</string>
-
+    <string name="home">Home</string>
     <string name="tap_to_change_color">Tap to change Color</string>
     <string name="capture">Capture</string>
     <string name="crop">Crop</string>
     <string name="fill">Fill</string>
     <string name="undo">Undo</string>
     <string name="apply">Apply</string>
+    <string name="save">Save</string>
+
+    <string name="enter_a_name">Enter a name</string>
 
     <string name="press_back_again_to_exit">Press BACK again to exit</string>
 

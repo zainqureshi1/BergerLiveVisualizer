@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,6 +39,7 @@ import com.e2esp.bergerpaints.livevisualizer.interfaces.OnTraysColorClickListene
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnTraysProductClickListener;
 import com.e2esp.bergerpaints.livevisualizer.models.Options;
 import com.e2esp.bergerpaints.livevisualizer.models.PrimaryColor;
+import com.e2esp.bergerpaints.livevisualizer.models.Product;
 import com.e2esp.bergerpaints.livevisualizer.models.ProductColor;
 import com.e2esp.bergerpaints.livevisualizer.models.SecondaryColor;
 import com.e2esp.bergerpaints.livevisualizer.utils.PermissionManager;
@@ -46,8 +48,10 @@ import com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar;
 
 import org.opencv.core.Mat;
 
-public class MainActivity extends FragmentActivity implements OnFragmentInteractionListener {
-    private static final String TAG = "MainActivity";
+public class VisualizerActivity extends FragmentActivity implements OnFragmentInteractionListener {
+    private static final String TAG = "VisualizerActivity";
+
+    public static final String EXTRA_SELECTED_PRODUCT = "EXTRA_SELECTED_PRODUCT";
 
     private final int FRAGMENT_INDEX_CAMERA = 0;
     private final int FRAGMENT_INDEX_STILL = 1;
@@ -84,6 +88,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
     private View viewContainerRightOptions;
     private View viewContainerActionButtons;
 
+    private View viewContainerActionHome;
     private View viewContainerActionCamera;
     private View viewContainerActionCrop;
     private View viewContainerActionFill;
@@ -123,7 +128,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_visualizer);
 
         setupViews();
         setupColorsTray();
@@ -135,9 +140,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 new Handler().post(new Runnable() {
                     @Override
                     public void run() {
-                        if (allColorsList.size() > 2) {
-                            selectedSecondaryColor = allColorsList.get(2);
-                        }
+                        selectInitialColor();
                         showFragment(FRAGMENT_INDEX_CAMERA);
                     }
                 });
@@ -242,6 +245,14 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         viewContainerRightOptions = findViewById(R.id.viewContainerRightOptions);
         viewContainerActionButtons = findViewById(R.id.viewContainerActionButtons);
 
+        viewContainerActionHome = findViewById(R.id.viewContainerActionHome);
+        viewContainerActionHome.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                gotoHome();
+            }
+        });
+
         viewContainerActionCamera = findViewById(R.id.viewContainerActionCamera);
         viewContainerActionCamera.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -311,6 +322,30 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         textViewVal.setText("V:"+DEFAULT_TOLERANCE[2]);
     }
 
+    private void selectInitialColor() {
+        Product product = getIntent().getParcelableExtra(EXTRA_SELECTED_PRODUCT);
+        if (product != null) {
+            String productName = product.getName();
+            for (int i = 0; i < allProductColorsList.size(); i++) {
+                if (productName.contains(allProductColorsList.get(i).getName())) {
+                    selectedProductColor = allProductColorsList.get(i).clone();
+                    showProductsTray();
+                    showTraysView();
+                    return;
+                }
+            }
+        }
+        if (allColorsList.size() > 2) {
+            selectedSecondaryColor = allColorsList.get(2);
+        }
+    }
+
+    private void gotoHome() {
+        startActivity(new Intent(this, HomeActivity.class));
+        finish();
+        overridePendingTransition(R.anim.slide_in_from_top, R.anim.slide_out_to_bottom);
+    }
+
     private void rightOptionAction(int index) {
         switch (index) {
             case 0: // Take Picture
@@ -342,7 +377,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
                 break;
             case 5: // Save Image
                 if (stillFragment != null) {
-                    stillFragment.saveImage(currentSelectionsToOptions());
+                    stillFragment.saveImage();
                 }
                 break;
         }
@@ -371,12 +406,12 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
             public void onClick(View v) {
                 String name = editText.getText().toString();
                 if (name.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "Enter name first", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(VisualizerActivity.this, "Enter name first", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 name = name.replaceAll("_", " ");
                 options.setName(name);
-                Utility.saveOptions(MainActivity.this, options);
+                Utility.saveOptions(VisualizerActivity.this, options);
                 updateOptionsList();
                 dialog.dismiss();
             }
@@ -471,6 +506,7 @@ public class MainActivity extends FragmentActivity implements OnFragmentInteract
         viewContainerFragments.bringToFront();
         viewContainerLeftOptions.bringToFront();
         viewContainerRightOptions.bringToFront();
+        viewContainerActionHome.bringToFront();
     }
 
     private void setupColorsTray() {

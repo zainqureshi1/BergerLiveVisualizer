@@ -3,11 +3,13 @@ package com.e2esp.bergerpaints.livevisualizer.utils;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.util.TypedValue;
 import android.widget.Toast;
 
 import com.e2esp.bergerpaints.livevisualizer.R;
@@ -29,6 +31,11 @@ import java.util.ArrayList;
  */
 
 public class Utility {
+
+    public static int dpToPx(Context context, int dp) {
+        Resources r = context.getResources();
+        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics()));
+    }
 
     public static double percentToColorTolerance(int percent, double maxColor) {
         // percent = color
