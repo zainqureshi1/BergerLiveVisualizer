@@ -10,6 +10,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.e2esp.bergerpaints.livevisualizer.detectors.WatershedSegmenter;
+import com.e2esp.bergerpaints.livevisualizer.interfaces.OnDrawingTouchListener;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnWatershedTabChangeListener;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
 
@@ -33,9 +34,11 @@ public class DrawingView extends View {
     private Paint mBitmapPaint;
     private WatershedSegmenter watershedSegmenter;
 
+    private OnDrawingTouchListener onDrawingTouchListener;
+
     private boolean isWatershedding;
 
-    public DrawingView(Context c, Mat mat, Bitmap bitmap, OnWatershedTabChangeListener onWatershedTabChangeListener) {
+    public DrawingView(Context c, Mat mat, Bitmap bitmap, OnWatershedTabChangeListener onWatershedTabChangeListener, OnDrawingTouchListener onDrawingTouchListener) {
         super(c);
         mMat = mat;
         mPath = new Path();
@@ -53,6 +56,7 @@ public class DrawingView extends View {
         mPaint.setStrokeWidth(5f);
 
         watershedSegmenter = new WatershedSegmenter(mMat, onWatershedTabChangeListener);
+        this.onDrawingTouchListener = onDrawingTouchListener;
     }
 
     @Override
@@ -127,12 +131,15 @@ public class DrawingView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (!isWatershedding) {
-            return false;
-        }
-
         float x = event.getX();
         float y = event.getY();
+
+        if (!isWatershedding) {
+            if (onDrawingTouchListener != null) {
+                onDrawingTouchListener.onTouched((int)x, (int)y);
+            }
+            return false;
+        }
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:

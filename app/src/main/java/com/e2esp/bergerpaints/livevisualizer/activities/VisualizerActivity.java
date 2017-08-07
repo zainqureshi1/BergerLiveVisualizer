@@ -56,7 +56,10 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
     private final int FRAGMENT_INDEX_CAMERA = 0;
     private final int FRAGMENT_INDEX_STILL = 1;
 
+    // Live
     public static final int[] DEFAULT_TOLERANCE = {24, 10, 4};
+    // Test
+    //public static final int[] DEFAULT_TOLERANCE = {30, 40, 40};
 
     private ImageView imageViewColorSelection;
     private AppCompatTextView textViewColorSelectionName;
@@ -1578,12 +1581,12 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
         }
     }
 
-    private void showStillScreen(final Mat rgba, final Mat mask) {
+    private void showStillScreen(final Mat rgba, final ArrayList<Mat> masks) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 StillFragment.mRgba = rgba;
-                StillFragment.mFloodMask = mask;
+                StillFragment.mFloodMasks = masks;
                 showFragment(FRAGMENT_INDEX_STILL);
             }
         });
@@ -1621,8 +1624,8 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
                 break;
             case SHOW_STILL_SCREEN:
                 Mat rgba = (Mat) objs[0];
-                Mat mask = (Mat) objs[1];
-                showStillScreen(rgba, mask);
+                ArrayList<Mat> masks = (ArrayList<Mat>) objs[1];
+                showStillScreen(rgba, masks);
                 break;
             case TOGGLE_CROP_ACTIONS:
                 boolean isCropping = (boolean) objs[0];

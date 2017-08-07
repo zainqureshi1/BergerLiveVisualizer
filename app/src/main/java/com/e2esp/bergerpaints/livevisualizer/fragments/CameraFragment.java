@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import com.e2esp.bergerpaints.livevisualizer.R;
 import com.e2esp.bergerpaints.livevisualizer.detectors.FloodFillDetector;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnFragmentInteractionListener;
+import com.e2esp.bergerpaints.livevisualizer.models.FillResult;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
 import com.e2esp.bergerpaints.livevisualizer.views.CameraView;
 
@@ -23,7 +24,6 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
@@ -49,6 +49,8 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
     private FloodFillDetector mFloodDetector;
     private Scalar mFillColorRgb;
     private Scalar mFillColorHsv;
+
+    private ArrayList<FillResult> mFillResults;
 
     private boolean takePicture;
 
@@ -102,6 +104,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         mTouchedRect = new Rect();
         mFloodDetector = new FloodFillDetector();
         mBlobColorHsv = new Scalar(255);
+        mFillResults = new ArrayList<>();
     }
 
     @Override
@@ -163,9 +166,6 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         mTouchedRect.height = (y + 4 < rows) ? y + 4 - mTouchedRect.y : rows - mTouchedRect.y;
 
         isBlobColorSelected = true;
-        //isFillColorSelected = false;
-
-        //onFragmentInteractionListener.onInteraction(OnFragmentInteractionListener.CLEAR_COLOR_SELECTIONS, null);
 
         return false; // don't need subsequent touch events
     }
@@ -204,6 +204,9 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
     public void setFillColor(int color) {
         if (color == -1) {
             isFillColorSelected = false;
+            if (mFillResults != null) {
+                mFillResults.clear();
+            }
         } else {
             int[] rgb = Utility.colorIntToRgb(color);
             mFillColorRgb = new Scalar(rgb[0], rgb[1], rgb[2]);
@@ -235,10 +238,10 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         }
     }
 
-    private Mat changeHS(Mat srcHsv, Scalar fillHsv, Mat mask) {
+    private void changeHS(Mat hsvMat, Scalar fillHsv, Mat mask) {
         // Split src into HSV channels
         List<Mat> hsvChannels = new ArrayList<>();
-        Core.split(srcHsv, hsvChannels);
+        Core.split(hsvMat, hsvChannels);
 
         // Separate H and S channels into separate Mat
         List<Mat> hsChannels = new ArrayList<>();
@@ -255,42 +258,87 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         // Merge new H, S and old V channels into single Mat
         hsvChannels.set(0, hsChannels.get(0));
         hsvChannels.set(1, hsChannels.get(1));
-        Mat destHsv = new Mat();
-        Core.merge(hsvChannels, destHsv);
+        hsvMat.setTo(Scalar.all(0));
+        Core.merge(hsvChannels, hsvMat);
         for (Mat channel : hsvChannels) {
             channel.release();
         }
-
-        return destHsv;
     }
 
     private Mat processCameraFrame(Mat inputRgba) {
         mRgba = inputRgba;
-
+        Mat hsvMat = null;
+        boolean handledTouch = false;
+        Point touchPoint = null;
         if (isBlobColorSelected && isFillColorSelected) {
-            // Convert RGBA To HSV
-            Mat orgHsv = new Mat();
-            Imgproc.cvtColor(inputRgba, orgHsv, Imgproc.COLOR_RGB2HSV);
-
-            if (mFloodDetector.shouldUpdate() && !takePicture) {
-                // Apply FloodFill to find matching area
-                Point touchPoint = touchPoint();
-                mFloodDetector.process(orgHsv, touchPoint);
-            }
-
-            // Change H and S channels to Fill Color using Flood Mask
-            Mat destHsv = changeHS(orgHsv, mFillColorHsv, mFloodDetector.getMask());
-
-            // Convert HSV back to RGB
-            Imgproc.cvtColor(destHsv, inputRgba, Imgproc.COLOR_HSV2RGB);
-            orgHsv.release();
-            destHsv.release();
+            touchPoint = touchPoint();
         }
 
+        if (mFillResults.size() > 0) {
+            // Convert RGBA To HSV
+            hsvMat = new Mat();
+            Imgproc.cvtColor(inputRgba, hsvMat, Imgproc.COLOR_RGB2HSV);
+            boolean updateMasks = mFloodDetector.shouldUpdate() && !takePicture;
+
+            // Apply any previous selections first
+            for (int i = 0; i < mFillResults.size(); i++) {
+                FillResult fillResult = mFillResults.get(i);
+
+                // Check if new selection part of previous mask
+                if (!handledTouch && isBlobColorSelected && isFillColorSelected) {
+                    double[] maskAtPoint = fillResult.getMask().get((int)touchPoint.y, (int)touchPoint.x);
+                    if (maskAtPoint != null && maskAtPoint.length > 0 && maskAtPoint[0] > 0) {
+                        fillResult.setTouchPoint(touchPoint);
+                        fillResult.setColor(mFillColorHsv);
+                        handledTouch = true;
+                    }
+                }
+
+                // Update mask if required
+                if (updateMasks) {
+                    // Apply FloodFill to find matching area
+                    mFloodDetector.setPreviousNonZero(fillResult.getPreviousNonZero());
+                    if (mFloodDetector.process(hsvMat, fillResult.getTouchPoint())) {
+                        fillResult.setMask(mFloodDetector.getMask().clone());
+                        fillResult.setPreviousNonZero(mFloodDetector.getPreviousNonZero());
+                    }
+                }
+
+                // Change H and S channels to Fill Color using Flood Mask
+                changeHS(hsvMat, fillResult.getColor(), fillResult.getMask());
+            }
+        }
+
+        if (!handledTouch && !takePicture && isBlobColorSelected && isFillColorSelected) {
+            if (hsvMat == null) {
+                // Convert RGBA To HSV
+                hsvMat = new Mat();
+                Imgproc.cvtColor(inputRgba, hsvMat, Imgproc.COLOR_RGB2HSV);
+            }
+
+            // Apply FloodFill to find matching area
+            mFloodDetector.setPreviousNonZero(0);
+            if (mFloodDetector.process(hsvMat, touchPoint)) {
+                FillResult fillResult = new FillResult(touchPoint, mFillColorHsv, mFloodDetector.getPreviousNonZero(), mFloodDetector.getMask().clone());
+                mFillResults.add(fillResult);
+
+                // Change H and S channels to Fill Color using Flood Mask
+                changeHS(hsvMat, fillResult.getColor(), fillResult.getMask());
+            }
+        }
+        if (hsvMat != null) {
+            // Convert HSV back to RGB
+            Imgproc.cvtColor(hsvMat, inputRgba, Imgproc.COLOR_HSV2RGB);
+            hsvMat.release();
+        }
 
         if (takePicture) {
             takePicture = false;
-            onFragmentInteractionListener.onInteraction(OnFragmentInteractionListener.SHOW_STILL_SCREEN, inputRgba.clone(), mFloodDetector.getMask());
+            ArrayList<Mat> mFillMasks = new ArrayList<>();
+            for (FillResult fillResult: mFillResults) {
+                mFillMasks.add(fillResult.getMask());
+            }
+            onFragmentInteractionListener.onInteraction(OnFragmentInteractionListener.SHOW_STILL_SCREEN, inputRgba.clone(), mFillMasks);
         }
 
         return inputRgba;

@@ -16,6 +16,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.e2esp.bergerpaints.livevisualizer.R;
+import com.e2esp.bergerpaints.livevisualizer.interfaces.OnDrawingTouchListener;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnFragmentInteractionListener;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnWatershedTabChangeListener;
 import com.e2esp.bergerpaints.livevisualizer.models.Options;
@@ -40,7 +41,8 @@ public class StillFragment extends Fragment {
     //private final String TAG = "StillFragment";
 
     public static Mat mRgba;
-    public static Mat mFloodMask;
+    public static ArrayList<Mat> mFloodMasks;
+    private Mat mFloodMask;
 
     private OnFragmentInteractionListener onFragmentInteractionListener;
 
@@ -48,6 +50,8 @@ public class StillFragment extends Fragment {
 
     private boolean isWatershedding;
     private boolean appliedWatershedding;
+
+    private int mFillColor = -1;
 
     public StillFragment() {
     }
@@ -87,6 +91,11 @@ public class StillFragment extends Fragment {
                 public void onTabSizeChange(int coloredLines, int whiteLines) {
                     handleCroppingChange(coloredLines, whiteLines);
                 }
+            }, new OnDrawingTouchListener() {
+                @Override
+                public void onTouched(int x, int y) {
+                    selectFloodMask(x, y);
+                }
             });
             ViewGroup.LayoutParams drawingParams = new ViewGroup.LayoutParams(bitmap.getWidth(), bitmap.getHeight());
             viewContainerDrawing.addView(drawingView, drawingParams);
@@ -96,6 +105,7 @@ public class StillFragment extends Fragment {
     }
 
     public void setFillColor(int color) {
+        mFillColor = color;
         if (drawingView != null) {
             drawingView.setFillColor(color);
         }
@@ -104,7 +114,7 @@ public class StillFragment extends Fragment {
                 if (appliedWatershedding) {
                     drawingView.changeAppliedColor();
                 } else {
-                    applyFloodFill(color);
+                    applyFloodFill();
                 }
             }
         }
@@ -184,12 +194,29 @@ public class StillFragment extends Fragment {
         });
     }
 
-    private void applyFloodFill(int color) {
-        if (mFloodMask.cols() <= 0 || mFloodMask.rows() <= 0) {
+    private void selectFloodMask(int x, int y) {
+        for (Mat mask: mFloodMasks) {
+            double[] maskAtPoint = mask.get(y, x);
+            if (maskAtPoint != null && maskAtPoint.length > 0 && maskAtPoint[0] > 0) {
+                mFloodMask = mask;
+                applyFloodFill();
+                return;
+            }
+        }
+    }
+
+    private void applyFloodFill() {
+        if (mFillColor == -1) {
+            return;
+        }
+        if (mFloodMask == null && mFloodMasks != null && mFloodMasks.size() > 0) {
+            mFloodMask = mFloodMasks.get(mFloodMasks.size() - 1);
+        }
+        if (mFloodMask == null || mFloodMask.cols() <= 0 || mFloodMask.rows() <= 0) {
             return;
         }
 
-        int[] rgb = Utility.colorIntToRgb(color);
+        int[] rgb = Utility.colorIntToRgb(mFillColor);
         Scalar colorRgb = new Scalar(rgb[0], rgb[1], rgb[2]);
         Scalar colorHsv = Utility.convertScalarRgb2Hsv(colorRgb);
 

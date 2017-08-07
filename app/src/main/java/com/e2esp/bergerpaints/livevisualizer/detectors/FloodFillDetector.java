@@ -61,25 +61,29 @@ public class FloodFillDetector {
         }
     }
 
-    public void process(Mat img, Point seedPoint) {
+    public boolean process(Mat img, Point seedPoint) {
+        // Create mask with border
         Mat floodFilled = Mat.zeros(img.rows() + 2, img.cols() + 2, CvType.CV_8U);
+        Scalar diff = new Scalar(mColorRadius.val[0]*0.5, mColorRadius.val[1]*0.5, mColorRadius.val[2]*0.5);
 
-        double diffH = mColorRadius.val[0]*0.5;
-        double diffS = mColorRadius.val[1]*0.5;
-        double diffV = mColorRadius.val[2]*0.5;
-        Imgproc.floodFill(img, floodFilled, seedPoint, new Scalar(255), new Rect(), new Scalar(diffH, diffS, diffV), new Scalar(diffH, diffS, diffV), 8 + (255 << 8) + Imgproc.FLOODFILL_MASK_ONLY);
-
+        // Apply Flood Fill
+        Imgproc.floodFill(img, floodFilled, seedPoint, new Scalar(255), new Rect(), diff, diff, 8 + (255 << 8) + Imgproc.FLOODFILL_MASK_ONLY);
         Core.subtract(floodFilled, Scalar.all(0), floodFilled);
 
+        // Remove border
         Rect roi = new Rect(1, 1, img.cols(), img.rows());
-        Mat result = new Mat();
-        floodFilled.submat(roi).copyTo(result);
+        Mat submat = floodFilled.submat(roi);
         floodFilled.release();
+        Mat result = new Mat();
+        submat.copyTo(result);
+        submat.release();
 
+        // Ignore if result too sparse compared to last mask
         int nonZero = Core.countNonZero(result);
         if (nonZero < mPreviousNonZero*0.1) {
             Log.v(TAG, "floodFill low on non zero: " + nonZero + " compared to previous: " + mPreviousNonZero);
-            return;
+            result.release();
+            return false;
         }
 
         // Apply Dilate to fill gaps
@@ -95,18 +99,20 @@ public class FloodFillDetector {
         mMask = result;
         mPreviousNonZero = nonZero;
 
-        /*Mat diff = new Mat();
-        Core.subtract(img, clone, diff);
-        int nz = Core.countNonZero(diff);
-        Log.i(TAG, "clonedDiff :: rows:"+diff.rows()+" cols:"+diff.cols()+" nz:"+nz);
-        diff.release();
-        clone.release();*/
-
         mLastProcessTime = System.currentTimeMillis();
+        return true;
     }
 
     public Mat getMask() {
         return mMask;
+    }
+
+    public int getPreviousNonZero() {
+        return mPreviousNonZero;
+    }
+
+    public void setPreviousNonZero(int previousNonZero) {
+        mPreviousNonZero = previousNonZero;
     }
 
     public boolean shouldUpdate() {
