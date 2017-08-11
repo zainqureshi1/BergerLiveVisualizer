@@ -1,7 +1,5 @@
 package com.e2esp.bergerpaints.livevisualizer.detectors;
 
-import android.util.Log;
-
 import com.e2esp.bergerpaints.livevisualizer.activities.VisualizerActivity;
 
 import org.opencv.core.Core;
@@ -125,8 +123,8 @@ public class FloodFillDetector {
         mPreviousNonZero = previousNonZero;
     }
 
-    public boolean shouldUpdate() {
-        return mLastProcessTime < 0 || (System.currentTimeMillis() - mLastProcessTime >= 200);
+    public boolean shouldUpdate(int totalMasks) {
+        return mLastProcessTime < 0 || (System.currentTimeMillis() - mLastProcessTime >= 200/totalMasks);
     }
 
 }

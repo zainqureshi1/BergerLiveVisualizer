@@ -43,6 +43,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
     private boolean isFillColorSelected = false;
     private boolean isTouchHandled = false;
 
+    private int mMaskToUpdate = -1;
     private int cols = -1;
     private int rows = -1;
     private Mat mHsvMat;
@@ -228,7 +229,13 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
             // Convert RGBA To HSV
             Imgproc.cvtColor(inputRgba, mHsvMat, Imgproc.COLOR_RGB2HSV);
             matConverted = true;
-            boolean updateMasks = mFloodDetector.shouldUpdate() && !takePicture;
+            boolean updateMask = mFloodDetector.shouldUpdate(mFillResults.size()) && !takePicture;
+            if (updateMask) {
+                mMaskToUpdate++;
+                if (mMaskToUpdate >= mFillResults.size()) {
+                    mMaskToUpdate = 0;
+                }
+            }
 
             // Apply any previous selections first
             for (int i = 0; i < mFillResults.size(); i++) {
@@ -249,13 +256,18 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
                 }
 
                 // Update mask if required
-                if (updateMasks) {
+                if (updateMask && i == mMaskToUpdate) {
                     // Apply FloodFill to find matching area
                     mFloodDetector.setPreviousNonZero(fillResult.getPreviousNonZero());
                     Mat floodMask = mFloodDetector.process(mHsvMat, fillResult.getTouchPoint());
                     if (floodMask != null) {
                         fillResult.setMask(floodMask);
                         fillResult.setPreviousNonZero(mFloodDetector.getPreviousNonZero());
+                        //Log.i(TAG, "Updated mask "+i);
+                    } else {
+                        //Log.e(TAG, "Failed to update mask "+i);
+                        // Must update this mask next time
+                        fillResult.setPreviousNonZero(0);
                     }
                 }
 
