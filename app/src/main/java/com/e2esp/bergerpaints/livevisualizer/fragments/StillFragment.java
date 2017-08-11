@@ -16,6 +16,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.e2esp.bergerpaints.livevisualizer.R;
+import com.e2esp.bergerpaints.livevisualizer.detectors.MaskApplier;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnDrawingTouchListener;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnFragmentInteractionListener;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnWatershedTabChangeListener;
@@ -24,14 +25,12 @@ import com.e2esp.bergerpaints.livevisualizer.utils.PermissionManager;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
 import com.e2esp.bergerpaints.livevisualizer.views.DrawingView;
 
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Zain on 6/15/2017.
@@ -43,6 +42,7 @@ public class StillFragment extends Fragment {
     public static Mat mRgba;
     public static ArrayList<Mat> mFloodMasks;
     private Mat mFloodMask;
+    private MaskApplier mMaskApplier;
 
     private OnFragmentInteractionListener onFragmentInteractionListener;
 
@@ -225,44 +225,17 @@ public class StillFragment extends Fragment {
         Imgproc.cvtColor(mRgba, orgHsv, Imgproc.COLOR_RGB2HSV);
 
         // Change H and S channels to Fill Color using Flood Mask
-        Mat destHsv = changeHS(orgHsv, colorHsv, mFloodMask);
+        if (mMaskApplier == null) {
+            mMaskApplier = new MaskApplier();
+        }
+        mMaskApplier.apply(orgHsv, colorHsv, mFloodMask);
 
         // Convert HSV back to RGB
-        Imgproc.cvtColor(destHsv, mRgba, Imgproc.COLOR_HSV2RGB);
+        Imgproc.cvtColor(orgHsv, mRgba, Imgproc.COLOR_HSV2RGB);
         orgHsv.release();
-        destHsv.release();
 
         Bitmap bitmap = Utility.matToBitmap(mRgba);
         drawingView.changeImage(bitmap);
-    }
-
-    private Mat changeHS(Mat srcHsv, Scalar fillHsv, Mat mask) {
-        // Split src into HSV channels
-        List<Mat> hsvChannels = new ArrayList<>();
-        Core.split(srcHsv, hsvChannels);
-
-        // Separate H and S channels into separate Mat
-        List<Mat> hsChannels = new ArrayList<>();
-        hsChannels.add(hsvChannels.get(0));
-        hsChannels.add(hsvChannels.get(1));
-        Mat hsMat = new Mat();
-        Core.merge(hsChannels, hsMat);
-
-        // Set H and S channels to fill color using given mask
-        hsMat.setTo(fillHsv, mask);
-        Core.split(hsMat, hsChannels);
-        hsMat.release();
-
-        // Merge new H, S and old V channels into single Mat
-        hsvChannels.set(0, hsChannels.get(0));
-        hsvChannels.set(1, hsChannels.get(1));
-        Mat destHsv = new Mat();
-        Core.merge(hsvChannels, destHsv);
-        for (Mat channel : hsvChannels) {
-            channel.release();
-        }
-
-        return destHsv;
     }
 
     private void handleCroppingChange(int coloredLines, int whiteLines) {

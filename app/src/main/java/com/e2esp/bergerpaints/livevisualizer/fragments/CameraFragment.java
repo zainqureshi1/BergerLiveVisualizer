@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 
 import com.e2esp.bergerpaints.livevisualizer.R;
 import com.e2esp.bergerpaints.livevisualizer.detectors.FloodFillDetector;
+import com.e2esp.bergerpaints.livevisualizer.detectors.MaskApplier;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnFragmentInteractionListener;
 import com.e2esp.bergerpaints.livevisualizer.models.FillResult;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
@@ -21,7 +22,6 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
@@ -29,7 +29,6 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Zain on 6/15/2017.
@@ -50,6 +49,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
 
     private Rect mTouchedRect;
     private FloodFillDetector mFloodDetector;
+    private MaskApplier mMaskApplier;
     private Scalar mFillColorHsv;
 
     private ArrayList<FillResult> mFillResults;
@@ -105,6 +105,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         mHsvMat = new Mat();
         mTouchedRect = new Rect();
         mFloodDetector = new FloodFillDetector();
+        mMaskApplier = new MaskApplier();
         mFillResults = new ArrayList<>();
     }
 
@@ -151,21 +152,24 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
             return false;
         }
 
-        int xOffset = (cameraView.getWidth() - cols) / 2;
-        int yOffset = (cameraView.getHeight() - rows) / 2;
+        float camWidth = cameraView.getWidth();
+        float camHeight = cameraView.getHeight();
+        float xFactor = cols / camWidth;
+        float yFactor = rows / camHeight;
 
-        int x = (int) event.getX() - xOffset;
-        int y = (int) event.getY() - yOffset;
+        int touchX = (int)(event.getX() * xFactor);
+        int touchY = (int)(event.getY() * yFactor);
 
-        Log.i(TAG, "Touch image coordinates: (" + x + ", " + y + ")");
+        if ((touchX < 0) || (touchY < 0) || (touchX > cols) || (touchY > rows)) {
+            Log.e(TAG, "Touch: (" + touchX + ", " + touchY + ") outside image: (0, 0, " + cols + ", " + rows + ")");
+            return false;
+        }
 
-        if ((x < 0) || (y < 0) || (x > cols) || (y > rows)) return false;
+        mTouchedRect.x = (touchX > 4) ? touchX - 4 : 0;
+        mTouchedRect.y = (touchY > 4) ? touchY - 4 : 0;
 
-        mTouchedRect.x = (x > 4) ? x - 4 : 0;
-        mTouchedRect.y = (y > 4) ? y - 4 : 0;
-
-        mTouchedRect.width = (x + 4 < cols) ? x + 4 - mTouchedRect.x : cols - mTouchedRect.x;
-        mTouchedRect.height = (y + 4 < rows) ? y + 4 - mTouchedRect.y : rows - mTouchedRect.y;
+        mTouchedRect.width = (touchX + 4 < cols) ? touchX + 4 - mTouchedRect.x : cols - mTouchedRect.x;
+        mTouchedRect.height = (touchY + 4 < rows) ? touchY + 4 - mTouchedRect.y : rows - mTouchedRect.y;
 
         isTouchHandled = false;
         isBlobColorSelected = true;
@@ -201,43 +205,16 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         switch (channel) {
             case 0:
                 Log.i(TAG, "Tolerance Hue: "+level);
-                mFloodDetector.setColorRadius(level, -1, -1, -1);
+                mFloodDetector.setColorRadius(level, -1, -1);
                 break;
             case 1:
                 Log.i(TAG, "Tolerance Sat: "+level);
-                mFloodDetector.setColorRadius(-1, level, -1, -1);
+                mFloodDetector.setColorRadius(-1, level, -1);
                 break;
             case 2:
                 Log.i(TAG, "Tolerance Val: "+level);
-                mFloodDetector.setColorRadius(-1, -1, level, -1);
+                mFloodDetector.setColorRadius(-1, -1, level);
                 break;
-        }
-    }
-
-    private void changeHS(Mat hsvMat, Scalar fillHsv, Mat mask) {
-        // Split src into HSV channels
-        List<Mat> hsvChannels = new ArrayList<>();
-        Core.split(hsvMat, hsvChannels);
-
-        // Separate H and S channels into separate Mat
-        List<Mat> hsChannels = new ArrayList<>();
-        hsChannels.add(hsvChannels.get(0));
-        hsChannels.add(hsvChannels.get(1));
-        Mat hsMat = new Mat();
-        Core.merge(hsChannels, hsMat);
-
-        // Set H and S channels to fill color using given mask
-        hsMat.setTo(fillHsv, mask);
-        Core.split(hsMat, hsChannels);
-        hsMat.release();
-
-        // Merge new H, S and old V channels into single Mat
-        hsvChannels.set(0, hsChannels.get(0));
-        hsvChannels.set(1, hsChannels.get(1));
-        hsvMat.setTo(Scalar.all(0));
-        Core.merge(hsvChannels, hsvMat);
-        for (Mat channel : hsvChannels) {
-            channel.release();
         }
     }
 
@@ -267,6 +244,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
                         mLatestFillResult = fillResult;
                         fillResult.setColor(mFillColorHsv);
                         isTouchHandled = true;
+                        Log.i(TAG, "Updated existing Fill Result");
                     }
                 }
 
@@ -274,14 +252,15 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
                 if (updateMasks) {
                     // Apply FloodFill to find matching area
                     mFloodDetector.setPreviousNonZero(fillResult.getPreviousNonZero());
-                    if (mFloodDetector.process(mHsvMat, fillResult.getTouchPoint())) {
-                        fillResult.setMask(mFloodDetector.getMask().clone());
+                    Mat floodMask = mFloodDetector.process(mHsvMat, fillResult.getTouchPoint());
+                    if (floodMask != null) {
+                        fillResult.setMask(floodMask);
                         fillResult.setPreviousNonZero(mFloodDetector.getPreviousNonZero());
                     }
                 }
 
                 // Change H and S channels to Fill Color using Flood Mask
-                changeHS(mHsvMat, fillResult.getColor(), fillResult.getMask());
+                mMaskApplier.apply(mHsvMat, fillResult.getColor(), fillResult.getMask());
             }
         }
 
@@ -297,13 +276,15 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
             if (touchPoint == null) {
                 touchPoint = touchPoint();
             }
-            if (mFloodDetector.process(mHsvMat, touchPoint)) {
-                mLatestFillResult = new FillResult(touchPoint, mFillColorHsv, mFloodDetector.getPreviousNonZero(), mFloodDetector.getMask().clone());
+            Mat floodMask = mFloodDetector.process(mHsvMat, touchPoint);
+            if (floodMask != null) {
+                mLatestFillResult = new FillResult(touchPoint, mFillColorHsv, mFloodDetector.getPreviousNonZero(), floodMask);
                 mFillResults.add(mLatestFillResult);
                 isTouchHandled = true;
+                Log.i(TAG, "Added new Fill Result :: Total:"+mFillResults.size());
 
                 // Change H and S channels to Fill Color using Flood Mask
-                changeHS(mHsvMat, mLatestFillResult.getColor(), mLatestFillResult.getMask());
+                mMaskApplier.apply(mHsvMat, mLatestFillResult.getColor(), mLatestFillResult.getMask());
             }
         }
         if (matConverted) {
