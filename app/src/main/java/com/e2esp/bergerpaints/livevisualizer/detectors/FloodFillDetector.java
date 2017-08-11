@@ -1,7 +1,5 @@
 package com.e2esp.bergerpaints.livevisualizer.detectors;
 
-import android.util.Log;
-
 import com.e2esp.bergerpaints.livevisualizer.activities.VisualizerActivity;
 
 import org.opencv.core.Core;
@@ -18,13 +16,14 @@ import org.opencv.imgproc.Imgproc;
  */
 
 public class FloodFillDetector {
-    private final String TAG = "FloodFillDetector";
+    //private final String TAG = "FloodFillDetector";
 
-    private final int mUpdateDelay = 200;
     private long mLastProcessTime = -1;
 
     // Color radius for range checking in HSV color space
     private Scalar mColorRadius = new Scalar(VisualizerActivity.DEFAULT_TOLERANCE[0], VisualizerActivity.DEFAULT_TOLERANCE[1], VisualizerActivity.DEFAULT_TOLERANCE[2]);
+
+    private Mat mDilateElement;
 
     private Mat mMask = new Mat();
     private int mPreviousNonZero = 0;
@@ -59,6 +58,11 @@ public class FloodFillDetector {
         if (dilateSize != -1) {
             mDilationSize = dilateSize;
         }
+
+        if (mDilateElement != null) {
+            mDilateElement.release();
+        }
+        mDilateElement = null;
     }
 
     public boolean process(Mat img, Point seedPoint) {
@@ -72,26 +76,24 @@ public class FloodFillDetector {
 
         // Remove border
         Rect roi = new Rect(1, 1, img.cols(), img.rows());
-        Mat submat = floodFilled.submat(roi);
+        Mat result = floodFilled.submat(roi);
         floodFilled.release();
-        Mat result = new Mat();
-        submat.copyTo(result);
-        submat.release();
 
         // Ignore if result too sparse compared to last mask
         int nonZero = Core.countNonZero(result);
         if (nonZero < mPreviousNonZero*0.1) {
-            Log.v(TAG, "floodFill low on non zero: " + nonZero + " compared to previous: " + mPreviousNonZero);
+            //Log.v(TAG, "floodFill low on non zero: " + nonZero + " compared to previous: " + mPreviousNonZero);
             result.release();
             return false;
         }
 
         // Apply Dilate to fill gaps
-        Mat element = Imgproc.getStructuringElement(mStructure, new Size(2 * mDilationSize + 1, 2 * mDilationSize + 1));
-        for (int i = 0; i < mDilationIterations; i++) {
-            Imgproc.dilate(result, result, element);
+        if (mDilateElement == null) {
+            mDilateElement = Imgproc.getStructuringElement(mStructure, new Size(2 * mDilationSize + 1, 2 * mDilationSize + 1));
         }
-        element.release();
+        for (int i = 0; i < mDilationIterations; i++) {
+            Imgproc.dilate(result, result, mDilateElement);
+        }
 
         if (mMask != null) {
             mMask.release();
@@ -116,14 +118,7 @@ public class FloodFillDetector {
     }
 
     public boolean shouldUpdate() {
-        boolean update;
-        if (mLastProcessTime < 0) {
-            update = true;
-        } else {
-            update = System.currentTimeMillis() - mLastProcessTime >= mUpdateDelay;
-        }
-        //Log.v(TAG, "shouldUpdate: "+update);
-        return update;
+        return mLastProcessTime < 0 || (System.currentTimeMillis() - mLastProcessTime >= 200);
     }
 
 }

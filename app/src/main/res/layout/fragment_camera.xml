@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     tools:context=".fragments.CameraFragment">
 
-    <com.e2esp.bergerpaints.livevisualizer.views.CameraView
+    <org.opencv.android.JavaCameraView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/cameraView" />

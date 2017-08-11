@@ -38,6 +38,10 @@ public class DrawingView extends View {
 
     private boolean isWatershedding;
 
+    public DrawingView(Context c) {
+        super(c);
+    }
+
     public DrawingView(Context c, Mat mat, Bitmap bitmap, OnWatershedTabChangeListener onWatershedTabChangeListener, OnDrawingTouchListener onDrawingTouchListener) {
         super(c);
         mMat = mat;

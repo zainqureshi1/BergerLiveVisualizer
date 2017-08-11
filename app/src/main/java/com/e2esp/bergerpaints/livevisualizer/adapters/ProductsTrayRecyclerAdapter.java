@@ -46,18 +46,18 @@ public class ProductsTrayRecyclerAdapter extends RecyclerView.Adapter<ProductsTr
         holder.bindView(colorsList.get(position));
     }
 
-    public class ColorsViewHolder extends RecyclerView.ViewHolder {
+    class ColorsViewHolder extends RecyclerView.ViewHolder {
 
         private ImageView imageViewProductIcon;
         private TextView textViewProductName;
 
-        public ColorsViewHolder(View itemView) {
+        ColorsViewHolder(View itemView) {
             super(itemView);
             imageViewProductIcon = (ImageView) itemView.findViewById(R.id.imageViewProductIcon);
             textViewProductName = (TextView) itemView.findViewById(R.id.textViewProductName);
         }
 
-        public void bindView(final ProductColor productColor) {
+        void bindView(final ProductColor productColor) {
             imageViewProductIcon.setImageResource(productColor.getImageRes());
             textViewProductName.setText(productColor.getName());
             imageViewProductIcon.setOnClickListener(new View.OnClickListener() {

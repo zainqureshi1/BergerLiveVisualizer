@@ -11,6 +11,7 @@ import android.view.MotionEvent;
  */
 
 public class VerticalSeekBar extends android.support.v7.widget.AppCompatSeekBar {
+    private final String TAG = "VerticalSeekBar";
 
     public VerticalSeekBar(Context context) {
         super(context);
@@ -51,10 +52,9 @@ public class VerticalSeekBar extends android.support.v7.widget.AppCompatSeekBar 
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_MOVE:
             case MotionEvent.ACTION_UP:
-                int i=0;
-                i=getMax() - (int) (getMax() * event.getY() / getHeight());
+                int i = getMax() - (int) (getMax() * event.getY() / getHeight());
                 setProgress(i);
-                Log.i("Progress",getProgress()+"");
+                Log.i(TAG, "Progress: " + getProgress());
                 onSizeChanged(getWidth(), getHeight(), 0, 0);
                 break;
 

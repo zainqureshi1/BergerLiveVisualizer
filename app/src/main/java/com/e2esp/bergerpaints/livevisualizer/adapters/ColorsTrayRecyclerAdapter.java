@@ -45,16 +45,16 @@ public class ColorsTrayRecyclerAdapter extends RecyclerView.Adapter<ColorsTrayRe
         holder.bindView(colorsList.get(position));
     }
 
-    public class ColorsViewHolder extends RecyclerView.ViewHolder {
+    class ColorsViewHolder extends RecyclerView.ViewHolder {
 
         private ImageView imageViewPrimaryColor;
 
-        public ColorsViewHolder(View itemView) {
+        ColorsViewHolder(View itemView) {
             super(itemView);
             imageViewPrimaryColor = (ImageView) itemView.findViewById(R.id.imageViewPrimaryColor);
         }
 
-        public void bindView(final PrimaryColor primaryColor) {
+        void bindView(final PrimaryColor primaryColor) {
             imageViewPrimaryColor.setColorFilter(primaryColor.getColor());
             imageViewPrimaryColor.setOnClickListener(new View.OnClickListener() {
                 @Override
