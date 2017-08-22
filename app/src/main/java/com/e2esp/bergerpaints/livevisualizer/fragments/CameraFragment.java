@@ -202,6 +202,10 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         }
     }
 
+    public void setTolerance(int hue, int sat, int val) {
+        mFloodDetector.setColorRadius(hue, sat, val);
+    }
+
     public void setToleranceLevel(int channel, double level) {
         switch (channel) {
             case 0:

@@ -41,6 +41,8 @@
     <string name="home">Home</string>
     <string name="tap_to_change_color">Tap to change Color</string>
     <string name="capture">Capture</string>
+    <string name="interior">Interior</string>
+    <string name="exterior">Exterior</string>
     <string name="crop">Crop</string>
     <string name="fill">Fill</string>
     <string name="undo">Undo</string>

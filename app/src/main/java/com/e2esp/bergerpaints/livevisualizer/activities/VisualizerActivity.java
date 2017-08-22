@@ -57,9 +57,12 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
     private final int FRAGMENT_INDEX_STILL = 1;
 
     // Live
-    public static final int[] DEFAULT_TOLERANCE = {24, 10, 4};
+    public static final int[] INTERIOR_TOLERANCE = {24, 10, 4};
+    public static final int[] EXTERIOR_TOLERANCE = {25, 16, 16};
     // Test
     //public static final int[] DEFAULT_TOLERANCE = {30, 40, 40};
+
+    public static boolean useExteriorTolerance;
 
     private ImageView imageViewColorSelection;
     private AppCompatTextView textViewColorSelectionName;
@@ -98,6 +101,7 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
     private View viewContainerActionUndo;
     private View viewContainerActionApply;
     private View viewContainerActionSave;
+    private View viewContainerActionInteriorExterior;
 
     private VerticalSeekBar seekBarHue;
     private VerticalSeekBar seekBarSat;
@@ -298,21 +302,28 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
                 rightOptionAction(5);
             }
         });
+        viewContainerActionInteriorExterior = findViewById(R.id.viewContainerActionInteriorExterior);
+        viewContainerActionInteriorExterior.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rightOptionAction(6);
+            }
+        });
 
         viewContainerFragments = findViewById(R.id.viewContainerFragments);
 
         seekBarHue = (VerticalSeekBar) findViewById(R.id.seekBarHue);
-        seekBarHue.setProgress(Utility.colorToPercentTolerance(DEFAULT_TOLERANCE[0], 360));
+        seekBarHue.setProgress(Utility.colorToPercentTolerance(INTERIOR_TOLERANCE[0], 360));
         seekBarHue.setTag(0);
         seekBarHue.setOnSeekBarChangeListener(toleranceChangeListener);
 
         seekBarSat = (VerticalSeekBar) findViewById(R.id.seekBarSat);
-        seekBarSat.setProgress(Utility.colorToPercentTolerance(DEFAULT_TOLERANCE[1], 255));
+        seekBarSat.setProgress(Utility.colorToPercentTolerance(INTERIOR_TOLERANCE[1], 255));
         seekBarSat.setTag(1);
         seekBarSat.setOnSeekBarChangeListener(toleranceChangeListener);
 
         seekBarVal = (VerticalSeekBar) findViewById(R.id.seekBarVal);
-        seekBarVal.setProgress(Utility.colorToPercentTolerance(DEFAULT_TOLERANCE[2], 255));
+        seekBarVal.setProgress(Utility.colorToPercentTolerance(INTERIOR_TOLERANCE[2], 255));
         seekBarVal.setTag(2);
         seekBarVal.setOnSeekBarChangeListener(toleranceChangeListener);
 
@@ -320,9 +331,9 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
         textViewSat = (AppCompatTextView) findViewById(R.id.textViewSat);
         textViewVal = (AppCompatTextView) findViewById(R.id.textViewVal);
 
-        textViewHue.setText("H:"+DEFAULT_TOLERANCE[0]);
-        textViewSat.setText("S:"+DEFAULT_TOLERANCE[1]);
-        textViewVal.setText("V:"+DEFAULT_TOLERANCE[2]);
+        textViewHue.setText("H:"+INTERIOR_TOLERANCE[0]);
+        textViewSat.setText("S:"+INTERIOR_TOLERANCE[1]);
+        textViewVal.setText("V:"+INTERIOR_TOLERANCE[2]);
     }
 
     private void selectInitialColor() {
@@ -381,6 +392,17 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
             case 5: // Save Image
                 if (stillFragment != null) {
                     stillFragment.saveImage();
+                }
+                break;
+            case 6: // Interior / Exterior
+                useExteriorTolerance = !useExteriorTolerance;
+                viewContainerActionInteriorExterior.setBackgroundResource(useExteriorTolerance ? R.drawable.toggle_down : R.drawable.toggle_up);
+                if (cameraFragment != null) {
+                    if (useExteriorTolerance) {
+                        cameraFragment.setTolerance(EXTERIOR_TOLERANCE[0], EXTERIOR_TOLERANCE[1], EXTERIOR_TOLERANCE[2]);
+                    } else {
+                        cameraFragment.setTolerance(INTERIOR_TOLERANCE[0], INTERIOR_TOLERANCE[1], INTERIOR_TOLERANCE[2]);
+                    }
                 }
                 break;
         }
@@ -458,6 +480,7 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
                 viewContainerActionUndo.setVisibility(View.GONE);
                 viewContainerActionApply.setVisibility(View.GONE);
                 viewContainerActionSave.setVisibility(View.INVISIBLE);
+                viewContainerActionInteriorExterior.setVisibility(View.VISIBLE);
                 stillFragment = null;
                 break;
             case FRAGMENT_INDEX_STILL:
@@ -465,6 +488,7 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
                 viewContainerLeftOptions.setVisibility(View.GONE);
                 viewContainerActionCamera.setVisibility(View.GONE);
                 viewContainerActionSave.setVisibility(View.VISIBLE);
+                viewContainerActionInteriorExterior.setVisibility(View.GONE);
                 showActionButtons(false, false, false);
                 cameraFragment = null;
                 break;

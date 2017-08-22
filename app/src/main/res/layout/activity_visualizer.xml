@@ -157,6 +157,7 @@
         android:layout_alignParentRight="true"
         android:orientation="vertical">
 
+        <!-- Color Selection -->
         <ImageView
             android:id="@+id/imageViewColorSelection"
             android:layout_width="@dimen/color_box_size"
@@ -165,6 +166,7 @@
             android:layout_centerHorizontal="true"
             android:src="@drawable/color_box" />
 
+        <!-- Tap To Change -->
         <android.support.v7.widget.AppCompatTextView
             android:layout_width="@dimen/color_box_size"
             android:layout_height="@dimen/color_box_size"
@@ -176,6 +178,7 @@
             android:textColor="@color/white"
             android:textSize="@dimen/text_size_tiny" />
 
+        <!-- Color Name -->
         <android.support.v7.widget.AppCompatTextView
             android:id="@+id/textViewColorSelectionName"
             android:layout_width="@dimen/color_box_size"
@@ -187,6 +190,7 @@
             android:textColor="@color/white"
             android:textSize="@dimen/text_size_small" />
 
+        <!-- Actions -->
         <LinearLayout
             android:id="@+id/viewContainerActionButtons"
             android:layout_width="wrap_content"
@@ -197,6 +201,7 @@
             android:gravity="center"
             android:orientation="vertical">
 
+            <!-- Camera -->
             <LinearLayout
                 android:id="@+id/viewContainerActionCamera"
                 android:layout_width="wrap_content"
@@ -218,6 +223,7 @@
 
             </LinearLayout>
 
+            <!-- Crop -->
             <LinearLayout
                 android:id="@+id/viewContainerActionCrop"
                 android:layout_width="wrap_content"
@@ -240,6 +246,7 @@
 
             </LinearLayout>
 
+            <!-- Fill -->
             <LinearLayout
                 android:id="@+id/viewContainerActionFill"
                 android:layout_width="wrap_content"
@@ -263,6 +270,7 @@
 
             </LinearLayout>
 
+            <!-- Undo -->
             <LinearLayout
                 android:id="@+id/viewContainerActionUndo"
                 android:layout_width="wrap_content"
@@ -285,6 +293,7 @@
 
             </LinearLayout>
 
+            <!-- Apply -->
             <LinearLayout
                 android:id="@+id/viewContainerActionApply"
                 android:layout_width="wrap_content"
@@ -309,6 +318,48 @@
 
         </LinearLayout>
 
+        <View
+            android:id="@+id/center"
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            android:layout_centerInParent="true" />
+
+        <!-- Interior / Exterior -->
+        <LinearLayout
+            android:id="@+id/viewContainerActionInteriorExterior"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_below="@+id/center"
+            android:layout_marginTop="@dimen/margin_giant"
+            android:layout_marginBottom="@dimen/margin_tiny"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:background="@drawable/toggle_up" >
+
+            <android.support.v7.widget.AppCompatTextView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text="@string/interior"
+                android:textColor="@color/dark_gray"
+                android:textSize="@dimen/text_size_small"
+                android:rotation="90" />
+
+            <android.support.v7.widget.AppCompatTextView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text="@string/exterior"
+                android:textColor="@color/dark_gray"
+                android:textSize="@dimen/text_size_small"
+                android:rotation="90" />
+
+        </LinearLayout>
+
+        <!-- Save -->
         <LinearLayout
             android:id="@+id/viewContainerActionSave"
             android:layout_width="wrap_content"

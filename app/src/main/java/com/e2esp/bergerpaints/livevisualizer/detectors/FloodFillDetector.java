@@ -23,7 +23,7 @@ public class FloodFillDetector {
     private long mLastProcessTime = -1;
 
     // Color radius for range checking in HSV color space
-    private Scalar mColorRadius = new Scalar(VisualizerActivity.DEFAULT_TOLERANCE[0]*0.5, VisualizerActivity.DEFAULT_TOLERANCE[1]*0.5, VisualizerActivity.DEFAULT_TOLERANCE[2]*0.5);
+    private Scalar mColorRadius = initColorRadius();
     private Scalar mNewValue = new Scalar(255);
     private Scalar mZeroScalar = Scalar.all(0);
     private Rect mOutRect = new Rect();
@@ -37,6 +37,13 @@ public class FloodFillDetector {
     private int mDilationIterations = 1;
     private int mStructure = Imgproc.MORPH_RECT;
     private int mDilationSize = 3;
+
+    private Scalar initColorRadius() {
+        if (VisualizerActivity.useExteriorTolerance) {
+            return new Scalar(VisualizerActivity.EXTERIOR_TOLERANCE[0]*0.5, VisualizerActivity.EXTERIOR_TOLERANCE[1]*0.5, VisualizerActivity.EXTERIOR_TOLERANCE[2]*0.5);
+        }
+        return new Scalar(VisualizerActivity.INTERIOR_TOLERANCE[0]*0.5, VisualizerActivity.INTERIOR_TOLERANCE[1]*0.5, VisualizerActivity.INTERIOR_TOLERANCE[2]*0.5);
+    }
 
     public void setColorRadius(double ch1, double ch2, double ch3) {
         if (ch1 == -1) {
