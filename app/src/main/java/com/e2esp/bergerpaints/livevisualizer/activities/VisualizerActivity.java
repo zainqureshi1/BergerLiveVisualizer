@@ -144,13 +144,13 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
         PermissionManager.getInstance().checkPermissionRequest(this, Manifest.permission.CAMERA, 120, "App require permission to use camera", new PermissionManager.Callback() {
             @Override
             public void onGranted() {
-                new Handler().post(new Runnable() {
+                new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         selectInitialColor();
                         showFragment(FRAGMENT_INDEX_CAMERA);
                     }
-                });
+                }, 500);
             }
             @Override
             public void onDenied() {

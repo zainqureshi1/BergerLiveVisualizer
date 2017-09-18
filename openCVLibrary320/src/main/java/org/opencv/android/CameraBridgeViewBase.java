@@ -413,18 +413,23 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
                 if (BuildConfig.DEBUG)
                     Log.d(TAG, "mStretch value: " + mScale);
 
+                int canvasWidth = canvas.getWidth();
+                int canvasHeight = canvas.getHeight();
+                int bitmapWidth = mCacheBitmap.getWidth();
+                int bitmapHeight = mCacheBitmap.getHeight();
                 if (mScale != 0) {
-                    canvas.drawBitmap(mCacheBitmap, new Rect(0,0,mCacheBitmap.getWidth(), mCacheBitmap.getHeight()),
-                         new Rect((int)((canvas.getWidth() - mScale*mCacheBitmap.getWidth()) / 2),
-                         (int)((canvas.getHeight() - mScale*mCacheBitmap.getHeight()) / 2),
-                         (int)((canvas.getWidth() - mScale*mCacheBitmap.getWidth()) / 2 + mScale*mCacheBitmap.getWidth()),
-                         (int)((canvas.getHeight() - mScale*mCacheBitmap.getHeight()) / 2 + mScale*mCacheBitmap.getHeight())), null);
+                    int left = (int)((canvasWidth - mScale*bitmapWidth) / 2);
+                    int top = (int)((canvasHeight - mScale*bitmapHeight) / 2);
+                    canvas.drawBitmap(mCacheBitmap, new Rect(0,0,bitmapWidth, bitmapHeight),
+                         new Rect(left, top,
+                         left + (int)(mScale*bitmapWidth),
+                         top + (int)(mScale*bitmapHeight)), null);
                 } else {
-                     canvas.drawBitmap(mCacheBitmap, new Rect(0,0,mCacheBitmap.getWidth(), mCacheBitmap.getHeight()),
-                         new Rect((canvas.getWidth() - mCacheBitmap.getWidth()) / 2,
-                         (canvas.getHeight() - mCacheBitmap.getHeight()) / 2,
-                         (canvas.getWidth() - mCacheBitmap.getWidth()) / 2 + mCacheBitmap.getWidth(),
-                         (canvas.getHeight() - mCacheBitmap.getHeight()) / 2 + mCacheBitmap.getHeight()), null);
+                     canvas.drawBitmap(mCacheBitmap, new Rect(0,0,bitmapWidth, bitmapHeight),
+                         new Rect((canvasWidth - bitmapWidth) / 2,
+                         (canvasHeight - bitmapHeight) / 2,
+                         (canvasWidth - bitmapWidth) / 2 + bitmapWidth,
+                         (canvasHeight - bitmapHeight) / 2 + bitmapHeight), null);
                 }
 
                 if (mFpsMeter != null) {
@@ -492,4 +497,42 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
 
         return new Size(calcWidth, calcHeight);
     }
+
+    protected Size getOptimalPreviewSize(List<?> supportedSizes, ListItemAccessor accessor, int surfaceWidth, int surfaceHeight) {
+        if (supportedSizes == null) return null;
+
+        final double ASPECT_TOLERANCE = 0.1;
+        double targetRatio=(double) surfaceHeight / surfaceWidth;
+
+        int calcWidth = 0;
+        int calcHeight = 0;
+        double minDiff = Double.MAX_VALUE;
+
+        for (Object size : supportedSizes) {
+            int width = accessor.getWidth(size);
+            int height = accessor.getHeight(size);
+            double ratio = (double) width / height;
+            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
+            if (Math.abs(height - surfaceHeight) < minDiff) {
+                calcWidth = width;
+                calcHeight = height;
+                minDiff = Math.abs(height - surfaceHeight);
+            }
+        }
+
+        if (calcWidth == 0 || calcHeight == 0) {
+            minDiff = Double.MAX_VALUE;
+            for (Object size : supportedSizes) {
+                int width = accessor.getWidth(size);
+                int height = accessor.getHeight(size);
+                if (Math.abs(height - surfaceHeight) < minDiff) {
+                    calcWidth = width;
+                    calcHeight = height;
+                    minDiff = Math.abs(height - surfaceHeight);
+                }
+            }
+        }
+        return new Size(calcWidth, calcHeight);
+    }
+
 }
