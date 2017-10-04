@@ -1,7 +1,6 @@
 package com.e2esp.bergerpaints.livevisualizer.fragments;
 
 import android.Manifest;
-import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -10,9 +9,6 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import com.e2esp.bergerpaints.livevisualizer.R;
@@ -20,7 +16,6 @@ import com.e2esp.bergerpaints.livevisualizer.detectors.MaskApplier;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnDrawingTouchListener;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnFragmentInteractionListener;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnWatershedTabChangeListener;
-import com.e2esp.bergerpaints.livevisualizer.models.Options;
 import com.e2esp.bergerpaints.livevisualizer.utils.PermissionManager;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
 import com.e2esp.bergerpaints.livevisualizer.views.DrawingView;
@@ -151,7 +146,7 @@ public class StillFragment extends Fragment {
         saveFile(fileName);
     }
 
-    public void saveImage(final Options options) {
+    /*public void saveImage(final Options options) {
         final Dialog dialog = new Dialog(getContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_save);
@@ -175,7 +170,7 @@ public class StillFragment extends Fragment {
         });
 
         dialog.show();
-    }
+    }*/
 
     private void saveFile(final String fileName) {
         PermissionManager.getInstance().checkPermissionRequest(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE, 121, "App require permission to save image", new PermissionManager.Callback() {

@@ -27,9 +27,9 @@ public class FillResult {
         return touchPoint;
     }
 
-    public void setTouchPoint(Point touchPoint) {
+    /*public void setTouchPoint(Point touchPoint) {
         this.touchPoint = touchPoint;
-    }
+    }*/
 
     public Scalar getColor() {
         return color;

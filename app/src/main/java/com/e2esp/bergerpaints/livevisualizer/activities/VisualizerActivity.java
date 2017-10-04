@@ -9,7 +9,8 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -48,8 +49,8 @@ import com.e2esp.bergerpaints.livevisualizer.views.VerticalSeekBar;
 
 import org.opencv.core.Mat;
 
-public class VisualizerActivity extends FragmentActivity implements OnFragmentInteractionListener {
-    private static final String TAG = "VisualizerActivity";
+public class VisualizerActivity extends AppCompatActivity implements OnFragmentInteractionListener {
+    //private static final String TAG = "VisualizerActivity";
 
     public static final String EXTRA_SELECTED_PRODUCT = "EXTRA_SELECTED_PRODUCT";
 
@@ -57,8 +58,8 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
     private final int FRAGMENT_INDEX_STILL = 1;
 
     // Live
-    public static final int[] INTERIOR_TOLERANCE = {24, 10, 4};
-    public static final int[] EXTERIOR_TOLERANCE = {25, 16, 16};
+    public static final int[] INTERIOR_TOLERANCE = {30, 20, 15};
+    public static final int[] EXTERIOR_TOLERANCE = {31, 26, 26};
     // Test
     //public static final int[] DEFAULT_TOLERANCE = {30, 40, 40};
 
@@ -159,8 +160,8 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
     }
 
     private void setupViews() {
-        colorWhite = getResources().getColor(R.color.white);
-        colorBlack = getResources().getColor(R.color.black);
+        colorWhite = ContextCompat.getColor(this, R.color.white);
+        colorBlack = ContextCompat.getColor(this, R.color.black);
 
         imageViewColorSelection = (ImageView) findViewById(R.id.imageViewColorSelection);
         imageViewColorSelection.setOnClickListener(new View.OnClickListener() {
@@ -331,9 +332,12 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
         textViewSat = (AppCompatTextView) findViewById(R.id.textViewSat);
         textViewVal = (AppCompatTextView) findViewById(R.id.textViewVal);
 
-        textViewHue.setText("H:"+INTERIOR_TOLERANCE[0]);
-        textViewSat.setText("S:"+INTERIOR_TOLERANCE[1]);
-        textViewVal.setText("V:"+INTERIOR_TOLERANCE[2]);
+        String stringH = "H:"+INTERIOR_TOLERANCE[0];
+        String stringS = "S:"+INTERIOR_TOLERANCE[1];
+        String stringV = "V:"+INTERIOR_TOLERANCE[2];
+        textViewHue.setText(stringH);
+        textViewSat.setText(stringS);
+        textViewVal.setText(stringV);
     }
 
     private void selectInitialColor() {
@@ -1420,10 +1424,19 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
         linearLayoutColorsTrayContainer.removeAllViews();
 
         float textSize = getResources().getDimension(R.dimen.text_size_small);
-        int textColor = getResources().getColor(R.color.black);
+        int textColor = ContextCompat.getColor(this, R.color.black);
         int containerWidth = ((View) linearLayoutColorsTrayContainer.getParent()).getWidth();
         int colorBoxSize = getResources().getDimensionPixelSize(R.dimen.color_box_size);
         int colorBoxMargin = getResources().getDimensionPixelSize(R.dimen.margin_small);
+        if (containerWidth <= 0) {
+            containerWidth = (int) (Utility.getScreenSize().x * 0.9);
+        }
+        if (colorBoxSize <= 0) {
+            colorBoxSize = 60;
+        }
+        if (colorBoxMargin <= 0) {
+            colorBoxMargin = 10;
+        }
         int boxLimit = (int)((float)(containerWidth + colorBoxMargin) / (float)(colorBoxMargin + colorBoxSize + colorBoxMargin));
 
         ArrayList<SecondaryColor> secondaryColors = color.getSecondaryColors();
@@ -1432,7 +1445,7 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
         for (int i = 0; i < totalColors; i++) {
             final SecondaryColor secondaryColor = secondaryColors.get(totalColors - 1 - i);
 
-            if (i % boxLimit == 0) {
+            if (i % boxLimit == 0 || linearLayoutColorsTray == null) {
                 linearLayoutColorsTray = new LinearLayout(this);
                 linearLayoutColorsTray.setVisibility(View.GONE);
                 linearLayoutColorsTray.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -1488,7 +1501,7 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
         linearLayoutColorsTrayContainer.removeAllViews();
 
         float textSize = getResources().getDimension(R.dimen.text_size_small);
-        int textColor = getResources().getColor(R.color.black);
+        int textColor = ContextCompat.getColor(this, R.color.black);
         int containerWidth = ((View) linearLayoutColorsTrayContainer.getParent().getParent()).getWidth();
         int colorBoxSize = getResources().getDimensionPixelSize(R.dimen.color_box_size);
         int colorBoxMargin = getResources().getDimensionPixelSize(R.dimen.margin_small);
@@ -1500,7 +1513,7 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
         for (int i = 0; i < totalColors; i++) {
             final SecondaryColor secondaryColor = secondaryColors.get(totalColors - 1 - i);
 
-            if (i % boxLimit == 0) {
+            if (i % boxLimit == 0 || linearLayoutColorsTray == null) {
                 linearLayoutColorsTray = new LinearLayout(this);
                 linearLayoutColorsTray.setVisibility(View.GONE);
                 linearLayoutColorsTray.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -1640,6 +1653,7 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
         }, 2000);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void onInteraction(int type, Object... objs) {
         switch (type) {
@@ -1673,15 +1687,19 @@ public class VisualizerActivity extends FragmentActivity implements OnFragmentIn
             double level = Utility.percentToColorTolerance(progress, tag == 0 ? 360 : 255);
             if (cameraFragment != null) {
                 cameraFragment.setToleranceLevel(tag, level);
+                String levelText;
                 switch (tag) {
                     case 0:
-                        textViewHue.setText("H:"+(int)level);
+                        levelText = "H:"+(int)level;
+                        textViewHue.setText(levelText);
                         break;
                     case 1:
-                        textViewSat.setText("S:"+(int)level);
+                        levelText = "S:"+(int)level;
+                        textViewSat.setText(levelText);
                         break;
                     case 2:
-                        textViewVal.setText("V:"+(int)level);
+                        levelText = "V:"+(int)level;
+                        textViewVal.setText(levelText);
                         break;
                 }
             }

@@ -5,10 +5,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.widget.Toast;
 
@@ -36,6 +38,11 @@ public class Utility {
     public static int dpToPx(Context context, int dp) {
         Resources r = context.getResources();
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics()));
+    }
+
+    public static Point getScreenSize() {
+        DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
+        return new Point(displayMetrics.widthPixels, displayMetrics.heightPixels);
     }
 
     public static double percentToColorTolerance(int percent, double maxColor) {

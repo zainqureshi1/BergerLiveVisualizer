@@ -207,7 +207,9 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
     }
 
     public void setTolerance(int hue, int sat, int val) {
-        mFloodDetector.setColorRadius(hue, sat, val);
+        if (mFloodDetector != null) {
+            mFloodDetector.setColorRadius(hue, sat, val);
+        }
     }
 
     public void setToleranceLevel(int channel, double level) {
@@ -233,20 +235,21 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         Point touchPoint = null;
 
         boolean matConverted = false;
-        if (mFillResults.size() > 0) {
+        int resultsCount = mFillResults.size();
+        if (resultsCount > 0) {
             // Convert RGBA To HSV
             Imgproc.cvtColor(inputRgba, mHsvMat, Imgproc.COLOR_RGB2HSV);
             matConverted = true;
-            boolean updateMask = mFloodDetector.shouldUpdate(mFillResults.size()) && !takePicture;
+            boolean updateMask = mFloodDetector.shouldUpdate(resultsCount) && !takePicture;
             if (updateMask) {
                 mMaskToUpdate++;
-                if (mMaskToUpdate >= mFillResults.size()) {
+                if (mMaskToUpdate >= resultsCount) {
                     mMaskToUpdate = 0;
                 }
             }
 
             // Apply any previous selections first
-            for (int i = 0; i < mFillResults.size(); i++) {
+            for (int i = 0; i < resultsCount; i++) {
                 FillResult fillResult = mFillResults.get(i);
 
                 // Check if new selection part of previous mask
@@ -258,6 +261,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
                     if (maskAtPoint != null && maskAtPoint.length > 0 && maskAtPoint[0] > 0) {
                         fillResult.release();
                         mFillResults.remove(i);
+                        resultsCount = mFillResults.size();
                         i--;
                         isTouchHandled = true;
                         Log.i(TAG, "Removed previous Fill Result");
