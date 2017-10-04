@@ -1,6 +1,7 @@
 package com.e2esp.bergerpaints.livevisualizer.interfaces;
 
 /**
+ *
  * Created by Zain on 7/26/2017.
  */
 

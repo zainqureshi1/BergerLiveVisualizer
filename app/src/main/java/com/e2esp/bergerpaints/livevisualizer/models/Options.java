@@ -3,6 +3,7 @@ package com.e2esp.bergerpaints.livevisualizer.models;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
 
 /**
+ *
  * Created by Zain on 6/19/2017.
  */
 
@@ -73,13 +74,11 @@ public class Options {
         String s = "S:" + (int) Utility.percentToColorTolerance(sat, 255);
         String v = "V:" + (int) Utility.percentToColorTolerance(val, 255);
 
-        String textToShow = h + " " + s + " " + v;
-        return textToShow;
+        return h + " " + s + " " + v;
     }
 
     public String getTextToSave() {
-        String textToSave = name+"_"+hue+"_"+sat+"_"+val;
-        return textToSave;
+        return name+"_"+hue+"_"+sat+"_"+val;
     }
 
 }

@@ -5,6 +5,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 
 /**
+ *
  * Created by Zain on 8/7/2017.
  */
 
@@ -55,6 +56,13 @@ public class FillResult {
 
     public void setPreviousNonZero(int previousNonZero) {
         this.previousNonZero = previousNonZero;
+    }
+
+    public void release() {
+        if (mask != null) {
+            mask.release();
+            mask = null;
+        }
     }
 
 }

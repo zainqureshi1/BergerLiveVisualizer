@@ -33,6 +33,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 /**
+ *
  * Created by Zain on 6/15/2017.
  */
 
@@ -112,7 +113,9 @@ public class StillFragment extends Fragment {
         if (color != -1) {
             if (!isWatershedding) {
                 if (appliedWatershedding) {
-                    drawingView.changeAppliedColor();
+                    if (drawingView != null) {
+                        drawingView.changeAppliedColor();
+                    }
                 } else {
                     applyFloodFill();
                 }

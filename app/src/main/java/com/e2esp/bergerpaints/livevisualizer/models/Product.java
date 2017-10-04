@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
+ *
  * Created by Zain on 7/26/2017.
  */
 
@@ -58,11 +59,7 @@ public class Product implements Parcelable {
 
     public static final Parcelable.Creator<Product> CREATOR = new Parcelable.Creator<Product>() {
         public Product createFromParcel(Parcel p) {
-            Product product = new Product(p);
-            if (product == null) {
-                throw new RuntimeException("Failed to unparcel Product");
-            }
-            return product;
+            return new Product(p);
         }
         public Product[] newArray(int size) {
             return new Product[size];

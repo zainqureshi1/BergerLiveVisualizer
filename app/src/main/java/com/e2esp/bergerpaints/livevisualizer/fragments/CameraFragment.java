@@ -31,6 +31,7 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 
 /**
+ *
  * Created by Zain on 6/15/2017.
  */
 
@@ -117,7 +118,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
 
         cameraView = (JavaCameraView) view.findViewById(R.id.cameraView);
         cameraView.setVisibility(SurfaceView.VISIBLE);
-        cameraView.setMaxFrameSize(1280, 720);
+        //cameraView.setMaxFrameSize(1280, 720);
         cameraView.setCvCameraViewListener(cameraViewListener);
 
         return view;
@@ -190,6 +191,9 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         if (color == -1) {
             isFillColorSelected = false;
             if (mFillResults != null) {
+                for (FillResult fillResult: mFillResults) {
+                    fillResult.release();
+                }
                 mFillResults.clear();
             }
         } else {
@@ -252,10 +256,16 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
                     }
                     double[] maskAtPoint = fillResult.getMask().get((int)touchPoint.y, (int)touchPoint.x);
                     if (maskAtPoint != null && maskAtPoint.length > 0 && maskAtPoint[0] > 0) {
-                        mLatestFillResult = fillResult;
+                        fillResult.release();
+                        mFillResults.remove(i);
+                        i--;
+                        isTouchHandled = true;
+                        Log.i(TAG, "Removed previous Fill Result");
+                        continue;
+                        /*mLatestFillResult = fillResult;
                         fillResult.setColor(mFillColorHsv);
                         isTouchHandled = true;
-                        Log.i(TAG, "Updated existing Fill Result");
+                        Log.i(TAG, "Updated existing Fill Result");*/
                     }
                 }
 

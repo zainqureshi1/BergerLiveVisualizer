@@ -10,6 +10,7 @@ import android.support.v7.app.AlertDialog;
 import java.util.ArrayList;
 
 /**
+ *
  * Created by Zain on 6/19/2017.
  */
 
@@ -32,10 +33,7 @@ public class PermissionManager {
 
     public boolean hasPermission(Activity activity, String permission) {
         int result = ContextCompat.checkSelfPermission(activity, permission);
-        if (result == PackageManager.PERMISSION_DENIED) {
-            return false;
-        }
-        return true;
+        return result != PackageManager.PERMISSION_DENIED;
     }
 
     private boolean alreadyRequested(int requestCode) {
