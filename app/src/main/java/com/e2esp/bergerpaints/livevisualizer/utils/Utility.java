@@ -107,8 +107,10 @@ public class Utility {
         Mat pointMatRgba = new Mat();
         Mat pointMatHsv = new Mat(1, 1, CvType.CV_8UC3, hsvColor);
         Imgproc.cvtColor(pointMatHsv, pointMatRgba, Imgproc.COLOR_HSV2RGB_FULL, 4);
-
-        return new Scalar(pointMatRgba.get(0, 0));
+        Scalar rgbaColor = new Scalar(pointMatRgba.get(0, 0));
+        pointMatRgba.release();
+        pointMatHsv.release();
+        return rgbaColor;
     }
 
     public static Scalar convertScalarRgb2Hsv(Scalar rgbColor) {
@@ -116,7 +118,10 @@ public class Utility {
         Mat pointMatRgb = new Mat(1, 1, CvType.CV_8UC3, rgbColor);
         Imgproc.cvtColor(pointMatRgb, pointMatHsv, Imgproc.COLOR_RGB2HSV, 3);
         double[] pointHsv = pointMatHsv.get(0, 0);
-        return new Scalar(pointHsv);
+        Scalar hsvColor = new Scalar(pointHsv);
+        pointMatHsv.release();
+        pointMatRgb.release();
+        return hsvColor;
     }
 
     public static void setChannel(Mat mat, int channel, double value) {

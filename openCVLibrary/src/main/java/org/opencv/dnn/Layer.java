@@ -143,6 +143,20 @@ public class Layer extends Algorithm {
     }
 
 
+    //
+    // C++: int Layer::preferableTarget
+    //
+
+    //javadoc: Layer::get_preferableTarget()
+    public  int get_preferableTarget()
+    {
+        
+        int retVal = get_preferableTarget_0(nativeObj);
+        
+        return retVal;
+    }
+
+
     @Override
     protected void finalize() throws Throwable {
         delete(nativeObj);
@@ -173,6 +187,9 @@ public class Layer extends Algorithm {
 
     // C++: String Layer::type
     private static native String get_type_0(long nativeObj);
+
+    // C++: int Layer::preferableTarget
+    private static native int get_preferableTarget_0(long nativeObj);
 
     // native support for java finalize()
     private static native void delete(long nativeObj);

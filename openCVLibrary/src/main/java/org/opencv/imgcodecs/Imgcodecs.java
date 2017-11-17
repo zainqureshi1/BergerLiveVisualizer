@@ -146,24 +146,26 @@ public class Imgcodecs {
 
 
     //
-    // C++:  bool imreadmulti(String filename, vector_Mat mats, int flags = IMREAD_ANYCOLOR)
+    // C++:  bool imreadmulti(String filename, vector_Mat& mats, int flags = IMREAD_ANYCOLOR)
     //
 
     //javadoc: imreadmulti(filename, mats, flags)
     public static boolean imreadmulti(String filename, List<Mat> mats, int flags)
     {
-        Mat mats_mat = Converters.vector_Mat_to_Mat(mats);
+        Mat mats_mat = new Mat();
         boolean retVal = imreadmulti_0(filename, mats_mat.nativeObj, flags);
-        
+        Converters.Mat_to_vector_Mat(mats_mat, mats);
+        mats_mat.release();
         return retVal;
     }
 
     //javadoc: imreadmulti(filename, mats)
     public static boolean imreadmulti(String filename, List<Mat> mats)
     {
-        Mat mats_mat = Converters.vector_Mat_to_Mat(mats);
+        Mat mats_mat = new Mat();
         boolean retVal = imreadmulti_1(filename, mats_mat.nativeObj);
-        
+        Converters.Mat_to_vector_Mat(mats_mat, mats);
+        mats_mat.release();
         return retVal;
     }
 
@@ -204,7 +206,7 @@ public class Imgcodecs {
     private static native boolean imencode_0(String ext, long img_nativeObj, long buf_mat_nativeObj, long params_mat_nativeObj);
     private static native boolean imencode_1(String ext, long img_nativeObj, long buf_mat_nativeObj);
 
-    // C++:  bool imreadmulti(String filename, vector_Mat mats, int flags = IMREAD_ANYCOLOR)
+    // C++:  bool imreadmulti(String filename, vector_Mat& mats, int flags = IMREAD_ANYCOLOR)
     private static native boolean imreadmulti_0(String filename, long mats_mat_nativeObj, int flags);
     private static native boolean imreadmulti_1(String filename, long mats_mat_nativeObj);
 

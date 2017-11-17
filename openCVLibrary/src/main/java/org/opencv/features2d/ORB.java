@@ -4,7 +4,7 @@
 //
 package org.opencv.features2d;
 
-
+import java.lang.String;
 
 // C++: class ORB
 //javadoc: ORB
@@ -37,6 +37,20 @@ public class ORB extends Feature2D {
     {
         
         ORB retVal = new ORB(create_1());
+        
+        return retVal;
+    }
+
+
+    //
+    // C++:  String getDefaultName()
+    //
+
+    //javadoc: ORB::getDefaultName()
+    public  String getDefaultName()
+    {
+        
+        String retVal = getDefaultName_0(nativeObj);
         
         return retVal;
     }
@@ -304,6 +318,9 @@ public class ORB extends Feature2D {
     // C++: static Ptr_ORB create(int nfeatures = 500, float scaleFactor = 1.2f, int nlevels = 8, int edgeThreshold = 31, int firstLevel = 0, int WTA_K = 2, int scoreType = ORB::HARRIS_SCORE, int patchSize = 31, int fastThreshold = 20)
     private static native long create_0(int nfeatures, float scaleFactor, int nlevels, int edgeThreshold, int firstLevel, int WTA_K, int scoreType, int patchSize, int fastThreshold);
     private static native long create_1();
+
+    // C++:  String getDefaultName()
+    private static native String getDefaultName_0(long nativeObj);
 
     // C++:  double getScaleFactor()
     private static native double getScaleFactor_0(long nativeObj);

@@ -48,6 +48,15 @@ public class WatershedSegmenter {
         this.onTabChangeListener = onTabChangeListener;
     }
 
+    public void destroy() {
+        if (markersMask != null) {
+            markersMask.release();
+        }
+        if (appliedMarkersMask != null) {
+            appliedMarkersMask.release();
+        }
+    }
+
     public void startLine(Point point, Scalar color, Bitmap bitmap) {
         previousPoint = point;
         if (color != null) {
@@ -96,11 +105,14 @@ public class WatershedSegmenter {
         Imgproc.cvtColor(image, hsvImage, Imgproc.COLOR_RGB2HSV);
 
         ArrayList<MatOfPoint> contours = new ArrayList<>();
-        Imgproc.findContours(markersMask, contours, new Mat(),
+        Mat hierarchy = new Mat();
+        Imgproc.findContours(markersMask, contours, hierarchy,
                 Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+        hierarchy.release();
 
         if (contours.isEmpty()) {
             Log.e(TAG, "Contours is empty");
+            hsvImage.release();
             return image;
         }
 
@@ -123,6 +135,7 @@ public class WatershedSegmenter {
                 }
             }
             Imgproc.drawContours(markers, contours, idx, Scalar.all(mark), -1);//, 8, hierarchy, Integer.MAX_VALUE, new Point());
+            contour.release();
         }
 
         for (MatOfPoint contour: contours) {
@@ -132,6 +145,8 @@ public class WatershedSegmenter {
 
         if (idx == 0) {
             Log.e(TAG, "Idx is zero");
+            hsvImage.release();
+            markers.release();
             return image;
         }
 
@@ -162,6 +177,7 @@ public class WatershedSegmenter {
         Core.split(hsMat, hsChannels);
 
         markers.release();
+        hsMat.release();
         mask.release();
 
         clearColorsTab(true);

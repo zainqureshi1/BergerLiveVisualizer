@@ -11,7 +11,6 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfDouble;
 import org.opencv.core.MatOfInt;
 import org.opencv.dnn.DictValue;
-import org.opencv.dnn.Layer;
 import org.opencv.utils.Converters;
 
 // C++: class Net
@@ -196,14 +195,14 @@ public class Net {
 
 
     //
-    // C++:  vector_Ptr_Layer getLayerInputs(LayerId layerId)
+    // C++:  int64 getPerfProfile(vector_double& timings)
     //
 
-    //javadoc: Net::getLayerInputs(layerId)
-    public  List<Layer> getLayerInputs(DictValue layerId)
+    //javadoc: Net::getPerfProfile(timings)
+    public  long getPerfProfile(MatOfDouble timings)
     {
-        
-        List<Layer> retVal = getLayerInputs_0(nativeObj, layerId.getNativeObjAddr());
+        Mat timings_mat = timings;
+        long retVal = getPerfProfile_0(nativeObj, timings_mat.nativeObj);
         
         return retVal;
     }
@@ -324,34 +323,6 @@ public class Net {
 
 
     //
-    // C++:  void getLayerShapes(MatShape netInputShape, int layerId, vector_MatShape* inLayerShapes, vector_MatShape* outLayerShapes)
-    //
-
-    //javadoc: Net::getLayerShapes(netInputShape, layerId, inLayerShapes, outLayerShapes)
-    public  void getLayerShapes(MatOfInt netInputShape, int layerId, List<MatOfInt> inLayerShapes, List<MatOfInt> outLayerShapes)
-    {
-        Mat netInputShape_mat = netInputShape;
-        getLayerShapes_0(nativeObj, netInputShape_mat.nativeObj, layerId, inLayerShapes, outLayerShapes);
-        
-        return;
-    }
-
-
-    //
-    // C++:  void getLayerShapes(vector_MatShape netInputShapes, int layerId, vector_MatShape* inLayerShapes, vector_MatShape* outLayerShapes)
-    //
-
-    //javadoc: Net::getLayerShapes(netInputShapes, layerId, inLayerShapes, outLayerShapes)
-    public  void getLayerShapes(List<MatOfInt> netInputShapes, int layerId, List<MatOfInt> inLayerShapes, List<MatOfInt> outLayerShapes)
-    {
-        
-        getLayerShapes_1(nativeObj, netInputShapes, layerId, inLayerShapes, outLayerShapes);
-        
-        return;
-    }
-
-
-    //
     // C++:  void getLayerTypes(vector_String& layersTypes)
     //
 
@@ -366,17 +337,17 @@ public class Net {
 
 
     //
-    // C++:  void getLayersShapes(MatShape netInputShape, vector_int* layersIds, vector_vector_MatShape* inLayersShapes, vector_vector_MatShape* outLayersShapes)
+    // C++:  void getLayersShapes(MatShape netInputShape, vector_int& layersIds, vector_vector_MatShape& inLayersShapes, vector_vector_MatShape& outLayersShapes)
     //
 
-    // Unknown type 'vector_vector_MatShape' (I), skipping the function
+    // Unknown type 'vector_vector_MatShape' (O), skipping the function
 
 
     //
-    // C++:  void getLayersShapes(vector_MatShape netInputShapes, vector_int* layersIds, vector_vector_MatShape* inLayersShapes, vector_vector_MatShape* outLayersShapes)
+    // C++:  void getLayersShapes(vector_MatShape netInputShapes, vector_int& layersIds, vector_vector_MatShape& inLayersShapes, vector_vector_MatShape& outLayersShapes)
     //
 
-    // Unknown type 'vector_vector_MatShape' (I), skipping the function
+    // Unknown type 'vector_vector_MatShape' (O), skipping the function
 
 
     //
@@ -397,23 +368,6 @@ public class Net {
 
 
     //
-    // C++:  void getMemoryConsumption(MatShape netInputShape, vector_int& layerIds, vector_size_t& weights, vector_size_t& blobs)
-    //
-
-    //javadoc: Net::getMemoryConsumption(netInputShape, layerIds, weights, blobs)
-    public  void getMemoryConsumption(MatOfInt netInputShape, MatOfInt layerIds, MatOfDouble weights, MatOfDouble blobs)
-    {
-        Mat netInputShape_mat = netInputShape;
-        Mat layerIds_mat = layerIds;
-        Mat weights_mat = weights;
-        Mat blobs_mat = blobs;
-        getMemoryConsumption_1(nativeObj, netInputShape_mat.nativeObj, layerIds_mat.nativeObj, weights_mat.nativeObj, blobs_mat.nativeObj);
-        
-        return;
-    }
-
-
-    //
     // C++:  void getMemoryConsumption(int layerId, MatShape netInputShape, size_t& weights, size_t& blobs)
     //
 
@@ -423,7 +377,7 @@ public class Net {
         Mat netInputShape_mat = netInputShape;
         double[] weights_out = new double[1];
         double[] blobs_out = new double[1];
-        getMemoryConsumption_2(nativeObj, layerId, netInputShape_mat.nativeObj, weights_out, blobs_out);
+        getMemoryConsumption_1(nativeObj, layerId, netInputShape_mat.nativeObj, weights_out, blobs_out);
         if(weights!=null) weights[0] = (long)weights_out[0];
         if(blobs!=null) blobs[0] = (long)blobs_out[0];
         return;
@@ -439,7 +393,7 @@ public class Net {
     {
         double[] weights_out = new double[1];
         double[] blobs_out = new double[1];
-        getMemoryConsumption_3(nativeObj, layerId, netInputShapes, weights_out, blobs_out);
+        getMemoryConsumption_2(nativeObj, layerId, netInputShapes, weights_out, blobs_out);
         if(weights!=null) weights[0] = (long)weights_out[0];
         if(blobs!=null) blobs[0] = (long)blobs_out[0];
         return;
@@ -447,32 +401,14 @@ public class Net {
 
 
     //
-    // C++:  void getMemoryConsumption(vector_MatShape netInputShapes, size_t& weights, size_t& blobs)
+    // C++:  void setHalideScheduler(String scheduler)
     //
 
-    //javadoc: Net::getMemoryConsumption(netInputShapes, weights, blobs)
-    public  void getMemoryConsumption(List<MatOfInt> netInputShapes, long[] weights, long[] blobs)
+    //javadoc: Net::setHalideScheduler(scheduler)
+    public  void setHalideScheduler(String scheduler)
     {
-        double[] weights_out = new double[1];
-        double[] blobs_out = new double[1];
-        getMemoryConsumption_4(nativeObj, netInputShapes, weights_out, blobs_out);
-        if(weights!=null) weights[0] = (long)weights_out[0];
-        if(blobs!=null) blobs[0] = (long)blobs_out[0];
-        return;
-    }
-
-
-    //
-    // C++:  void getMemoryConsumption(vector_MatShape netInputShapes, vector_int& layerIds, vector_size_t& weights, vector_size_t& blobs)
-    //
-
-    //javadoc: Net::getMemoryConsumption(netInputShapes, layerIds, weights, blobs)
-    public  void getMemoryConsumption(List<MatOfInt> netInputShapes, MatOfInt layerIds, MatOfDouble weights, MatOfDouble blobs)
-    {
-        Mat layerIds_mat = layerIds;
-        Mat weights_mat = weights;
-        Mat blobs_mat = blobs;
-        getMemoryConsumption_5(nativeObj, netInputShapes, layerIds_mat.nativeObj, weights_mat.nativeObj, blobs_mat.nativeObj);
+        
+        setHalideScheduler_0(nativeObj, scheduler);
         
         return;
     }
@@ -529,6 +465,34 @@ public class Net {
     }
 
 
+    //
+    // C++:  void setPreferableBackend(int backendId)
+    //
+
+    //javadoc: Net::setPreferableBackend(backendId)
+    public  void setPreferableBackend(int backendId)
+    {
+        
+        setPreferableBackend_0(nativeObj, backendId);
+        
+        return;
+    }
+
+
+    //
+    // C++:  void setPreferableTarget(int targetId)
+    //
+
+    //javadoc: Net::setPreferableTarget(targetId)
+    public  void setPreferableTarget(int targetId)
+    {
+        
+        setPreferableTarget_0(nativeObj, targetId);
+        
+        return;
+    }
+
+
     @Override
     protected void finalize() throws Throwable {
         delete(nativeObj);
@@ -571,8 +535,8 @@ public class Net {
     // C++:  int64 getFLOPS(vector_MatShape netInputShapes)
     private static native long getFLOPS_3(long nativeObj, List<MatOfInt> netInputShapes);
 
-    // C++:  vector_Ptr_Layer getLayerInputs(LayerId layerId)
-    private static native List<Layer> getLayerInputs_0(long nativeObj, long layerId_nativeObj);
+    // C++:  int64 getPerfProfile(vector_double& timings)
+    private static native long getPerfProfile_0(long nativeObj, long timings_mat_nativeObj);
 
     // C++:  vector_String getLayerNames()
     private static native List<String> getLayerNames_0(long nativeObj);
@@ -596,32 +560,20 @@ public class Net {
     // C++:  void forward(vector_Mat outputBlobs, vector_String outBlobNames)
     private static native void forward_4(long nativeObj, long outputBlobs_mat_nativeObj, List<String> outBlobNames);
 
-    // C++:  void getLayerShapes(MatShape netInputShape, int layerId, vector_MatShape* inLayerShapes, vector_MatShape* outLayerShapes)
-    private static native void getLayerShapes_0(long nativeObj, long netInputShape_mat_nativeObj, int layerId, List<MatOfInt> inLayerShapes, List<MatOfInt> outLayerShapes);
-
-    // C++:  void getLayerShapes(vector_MatShape netInputShapes, int layerId, vector_MatShape* inLayerShapes, vector_MatShape* outLayerShapes)
-    private static native void getLayerShapes_1(long nativeObj, List<MatOfInt> netInputShapes, int layerId, List<MatOfInt> inLayerShapes, List<MatOfInt> outLayerShapes);
-
     // C++:  void getLayerTypes(vector_String& layersTypes)
     private static native void getLayerTypes_0(long nativeObj, List<String> layersTypes);
 
     // C++:  void getMemoryConsumption(MatShape netInputShape, size_t& weights, size_t& blobs)
     private static native void getMemoryConsumption_0(long nativeObj, long netInputShape_mat_nativeObj, double[] weights_out, double[] blobs_out);
 
-    // C++:  void getMemoryConsumption(MatShape netInputShape, vector_int& layerIds, vector_size_t& weights, vector_size_t& blobs)
-    private static native void getMemoryConsumption_1(long nativeObj, long netInputShape_mat_nativeObj, long layerIds_mat_nativeObj, long weights_mat_nativeObj, long blobs_mat_nativeObj);
-
     // C++:  void getMemoryConsumption(int layerId, MatShape netInputShape, size_t& weights, size_t& blobs)
-    private static native void getMemoryConsumption_2(long nativeObj, int layerId, long netInputShape_mat_nativeObj, double[] weights_out, double[] blobs_out);
+    private static native void getMemoryConsumption_1(long nativeObj, int layerId, long netInputShape_mat_nativeObj, double[] weights_out, double[] blobs_out);
 
     // C++:  void getMemoryConsumption(int layerId, vector_MatShape netInputShapes, size_t& weights, size_t& blobs)
-    private static native void getMemoryConsumption_3(long nativeObj, int layerId, List<MatOfInt> netInputShapes, double[] weights_out, double[] blobs_out);
+    private static native void getMemoryConsumption_2(long nativeObj, int layerId, List<MatOfInt> netInputShapes, double[] weights_out, double[] blobs_out);
 
-    // C++:  void getMemoryConsumption(vector_MatShape netInputShapes, size_t& weights, size_t& blobs)
-    private static native void getMemoryConsumption_4(long nativeObj, List<MatOfInt> netInputShapes, double[] weights_out, double[] blobs_out);
-
-    // C++:  void getMemoryConsumption(vector_MatShape netInputShapes, vector_int& layerIds, vector_size_t& weights, vector_size_t& blobs)
-    private static native void getMemoryConsumption_5(long nativeObj, List<MatOfInt> netInputShapes, long layerIds_mat_nativeObj, long weights_mat_nativeObj, long blobs_mat_nativeObj);
+    // C++:  void setHalideScheduler(String scheduler)
+    private static native void setHalideScheduler_0(long nativeObj, String scheduler);
 
     // C++:  void setInput(Mat blob, String name = "")
     private static native void setInput_0(long nativeObj, long blob_nativeObj, String name);
@@ -632,6 +584,12 @@ public class Net {
 
     // C++:  void setParam(LayerId layer, int numParam, Mat blob)
     private static native void setParam_0(long nativeObj, long layer_nativeObj, int numParam, long blob_nativeObj);
+
+    // C++:  void setPreferableBackend(int backendId)
+    private static native void setPreferableBackend_0(long nativeObj, int backendId);
+
+    // C++:  void setPreferableTarget(int targetId)
+    private static native void setPreferableTarget_0(long nativeObj, int targetId);
 
     // native support for java finalize()
     private static native void delete(long nativeObj);

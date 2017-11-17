@@ -147,6 +147,10 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         super.onDestroy();
         if (cameraView != null)
             cameraView.disableView();
+
+        if (mHsvMat != null) {
+            mHsvMat.release();
+        }
     }
 
     public boolean onTouch(View v, MotionEvent event) {
@@ -235,21 +239,20 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         Point touchPoint = null;
 
         boolean matConverted = false;
-        int resultsCount = mFillResults.size();
-        if (resultsCount > 0) {
+        if (mFillResults.size() > 0) {
             // Convert RGBA To HSV
             Imgproc.cvtColor(inputRgba, mHsvMat, Imgproc.COLOR_RGB2HSV);
             matConverted = true;
-            boolean updateMask = mFloodDetector.shouldUpdate(resultsCount) && !takePicture;
+            boolean updateMask = mFloodDetector.shouldUpdate(mFillResults.size()) && !takePicture;
             if (updateMask) {
                 mMaskToUpdate++;
-                if (mMaskToUpdate >= resultsCount) {
+                if (mMaskToUpdate >= mFillResults.size()) {
                     mMaskToUpdate = 0;
                 }
             }
 
             // Apply any previous selections first
-            for (int i = 0; i < resultsCount; i++) {
+            for (int i = 0; i < mFillResults.size(); i++) {
                 FillResult fillResult = mFillResults.get(i);
 
                 // Check if new selection part of previous mask
@@ -261,7 +264,6 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
                     if (maskAtPoint != null && maskAtPoint.length > 0 && maskAtPoint[0] > 0) {
                         fillResult.release();
                         mFillResults.remove(i);
-                        resultsCount = mFillResults.size();
                         i--;
                         isTouchHandled = true;
                         Log.i(TAG, "Removed previous Fill Result");

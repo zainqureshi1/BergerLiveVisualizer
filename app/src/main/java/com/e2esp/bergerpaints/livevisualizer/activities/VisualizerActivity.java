@@ -58,8 +58,8 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
     private final int FRAGMENT_INDEX_STILL = 1;
 
     // Live
-    public static final int[] INTERIOR_TOLERANCE = {30, 20, 15};
-    public static final int[] EXTERIOR_TOLERANCE = {31, 26, 26};
+    public static final int[] INTERIOR_TOLERANCE = {35, 20, 15};
+    public static final int[] EXTERIOR_TOLERANCE = {24, 10, 4};
     // Test
     //public static final int[] DEFAULT_TOLERANCE = {30, 40, 40};
 
@@ -401,15 +401,29 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
             case 6: // Interior / Exterior
                 useExteriorTolerance = !useExteriorTolerance;
                 viewContainerActionInteriorExterior.setBackgroundResource(useExteriorTolerance ? R.drawable.toggle_down : R.drawable.toggle_up);
-                if (cameraFragment != null) {
-                    if (useExteriorTolerance) {
-                        cameraFragment.setTolerance(EXTERIOR_TOLERANCE[0], EXTERIOR_TOLERANCE[1], EXTERIOR_TOLERANCE[2]);
-                    } else {
-                        cameraFragment.setTolerance(INTERIOR_TOLERANCE[0], INTERIOR_TOLERANCE[1], INTERIOR_TOLERANCE[2]);
-                    }
+                if (useExteriorTolerance) {
+                    setTolerance(EXTERIOR_TOLERANCE);
+                } else {
+                    setTolerance(INTERIOR_TOLERANCE);
                 }
                 break;
         }
+    }
+
+    private void setTolerance(int[] tolerance) {
+        if (tolerance == null || tolerance.length < 3) {
+            return;
+        }
+        if (cameraFragment != null) {
+            cameraFragment.setTolerance(tolerance[0], tolerance[1], tolerance[2]);
+        }
+
+        if (seekBarHue != null && seekBarSat != null && seekBarVal != null) {
+            seekBarHue.setProgress(Utility.colorToPercentTolerance(tolerance[0], 360));
+            seekBarSat.setProgress(Utility.colorToPercentTolerance(tolerance[1], 255));
+            seekBarVal.setProgress(Utility.colorToPercentTolerance(tolerance[2], 255));
+        }
+
     }
 
     private Options currentSelectionsToOptions() {
@@ -1593,7 +1607,8 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
         hideTraysView();
         selectedSecondaryColor = color;
         imageViewColorSelection.setColorFilter(color.getColor());
-        textViewColorSelectionName.setText(color.getName()+"\n"+color.getColorCode());
+        String colorName = color.getName()+"\n"+color.getColorCode();
+        textViewColorSelectionName.setText(colorName);
 
         if (cameraFragment != null) {
             cameraFragment.setFillColor(color.getColor());

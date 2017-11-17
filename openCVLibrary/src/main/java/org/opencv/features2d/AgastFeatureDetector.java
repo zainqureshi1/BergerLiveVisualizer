@@ -4,7 +4,7 @@
 //
 package org.opencv.features2d;
 
-
+import java.lang.String;
 
 // C++: class AgastFeatureDetector
 //javadoc: AgastFeatureDetector
@@ -40,6 +40,20 @@ public class AgastFeatureDetector extends Feature2D {
     {
         
         AgastFeatureDetector retVal = new AgastFeatureDetector(create_1());
+        
+        return retVal;
+    }
+
+
+    //
+    // C++:  String getDefaultName()
+    //
+
+    //javadoc: AgastFeatureDetector::getDefaultName()
+    public  String getDefaultName()
+    {
+        
+        String retVal = getDefaultName_0(nativeObj);
         
         return retVal;
     }
@@ -139,6 +153,9 @@ public class AgastFeatureDetector extends Feature2D {
     // C++: static Ptr_AgastFeatureDetector create(int threshold = 10, bool nonmaxSuppression = true, int type = AgastFeatureDetector::OAST_9_16)
     private static native long create_0(int threshold, boolean nonmaxSuppression, int type);
     private static native long create_1();
+
+    // C++:  String getDefaultName()
+    private static native String getDefaultName_0(long nativeObj);
 
     // C++:  bool getNonmaxSuppression()
     private static native boolean getNonmaxSuppression_0(long nativeObj);

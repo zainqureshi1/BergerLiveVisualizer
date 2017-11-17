@@ -4,7 +4,7 @@
 //
 package org.opencv.features2d;
 
-
+import java.lang.String;
 
 // C++: class AKAZE
 //javadoc: AKAZE
@@ -38,6 +38,20 @@ public class AKAZE extends Feature2D {
     {
         
         AKAZE retVal = new AKAZE(create_1());
+        
+        return retVal;
+    }
+
+
+    //
+    // C++:  String getDefaultName()
+    //
+
+    //javadoc: AKAZE::getDefaultName()
+    public  String getDefaultName()
+    {
+        
+        String retVal = getDefaultName_0(nativeObj);
         
         return retVal;
     }
@@ -249,6 +263,9 @@ public class AKAZE extends Feature2D {
     // C++: static Ptr_AKAZE create(int descriptor_type = AKAZE::DESCRIPTOR_MLDB, int descriptor_size = 0, int descriptor_channels = 3, float threshold = 0.001f, int nOctaves = 4, int nOctaveLayers = 4, int diffusivity = KAZE::DIFF_PM_G2)
     private static native long create_0(int descriptor_type, int descriptor_size, int descriptor_channels, float threshold, int nOctaves, int nOctaveLayers, int diffusivity);
     private static native long create_1();
+
+    // C++:  String getDefaultName()
+    private static native String getDefaultName_0(long nativeObj);
 
     // C++:  double getThreshold()
     private static native double getThreshold_0(long nativeObj);

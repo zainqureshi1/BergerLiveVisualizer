@@ -394,6 +394,13 @@ public class Calib3d {
 
 
     //
+    // C++:  bool findCirclesGrid2(Mat image, Size patternSize, Mat& centers, int flags, Ptr_FeatureDetector blobDetector, CirclesGridFinderParameters2 parameters)
+    //
+
+    // Unknown type 'Ptr_FeatureDetector' (I), skipping the function
+
+
+    //
     // C++:  bool solvePnP(vector_Point3f objectPoints, vector_Point2f imagePoints, Mat cameraMatrix, vector_double distCoeffs, Mat& rvec, Mat& tvec, bool useExtrinsicGuess = false, int flags = SOLVEPNP_ITERATIVE)
     //
 

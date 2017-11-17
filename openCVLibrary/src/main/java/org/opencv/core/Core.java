@@ -17,11 +17,11 @@ import org.opencv.utils.Converters;
 public class Core {
 
     // these constants are wrapped inside functions to prevent inlining
-    private static String getVersion() { return "3.3.0"; }
-    private static String getNativeLibraryName() { return "opencv_java330"; }
+    private static String getVersion() { return "3.3.1"; }
+    private static String getNativeLibraryName() { return "opencv_java331"; }
     private static int getVersionMajor() { return 3; }
     private static int getVersionMinor() { return 3; }
-    private static int getVersionRevision() { return 0; }
+    private static int getVersionRevision() { return 1; }
     private static String getVersionStatus() { return ""; }
 
     public static final String VERSION = getVersion();
@@ -253,6 +253,20 @@ public class Core {
 
 
     //
+    // C++:  String getIppVersion()
+    //
+
+    //javadoc: getIppVersion()
+    public static String getIppVersion()
+    {
+        
+        String retVal = getIppVersion_0();
+        
+        return retVal;
+    }
+
+
+    //
     // C++:  bool checkRange(Mat a, bool quiet = true,  _hidden_ * pos = 0, double minVal = -DBL_MAX, double maxVal = DBL_MAX)
     //
 
@@ -330,6 +344,20 @@ public class Core {
     {
         
         boolean retVal = useIPP_0();
+        
+        return retVal;
+    }
+
+
+    //
+    // C++:  bool useIPP_NE()
+    //
+
+    //javadoc: useIPP_NE()
+    public static boolean useIPP_NE()
+    {
+        
+        boolean retVal = useIPP_NE_0();
         
         return retVal;
     }
@@ -1324,6 +1352,20 @@ public class Core {
 
 
     //
+    // C++:  void eigenNonSymmetric(Mat src, Mat& eigenvalues, Mat& eigenvectors)
+    //
+
+    //javadoc: eigenNonSymmetric(src, eigenvalues, eigenvectors)
+    public static void eigenNonSymmetric(Mat src, Mat eigenvalues, Mat eigenvectors)
+    {
+        
+        eigenNonSymmetric_0(src.nativeObj, eigenvalues.nativeObj, eigenvectors.nativeObj);
+        
+        return;
+    }
+
+
+    //
     // C++:  void exp(Mat src, Mat& dst)
     //
 
@@ -2243,6 +2285,20 @@ public class Core {
         return;
     }
 
+
+    //
+    // C++:  void setUseIPP_NE(bool flag)
+    //
+
+    //javadoc: setUseIPP_NE(flag)
+    public static void setUseIPP_NE(boolean flag)
+    {
+        
+        setUseIPP_NE_0(flag);
+        
+        return;
+    }
+
 // manual port
 public static class MinMaxLocResult {
     public double minVal;
@@ -2299,6 +2355,9 @@ public static MinMaxLocResult minMaxLoc(Mat src) {
     // C++:  String getBuildInformation()
     private static native String getBuildInformation_0();
 
+    // C++:  String getIppVersion()
+    private static native String getIppVersion_0();
+
     // C++:  bool checkRange(Mat a, bool quiet = true,  _hidden_ * pos = 0, double minVal = -DBL_MAX, double maxVal = DBL_MAX)
     private static native boolean checkRange_0(long a_nativeObj, boolean quiet, double minVal, double maxVal);
     private static native boolean checkRange_1(long a_nativeObj);
@@ -2313,6 +2372,9 @@ public static MinMaxLocResult minMaxLoc(Mat src) {
 
     // C++:  bool useIPP()
     private static native boolean useIPP_0();
+
+    // C++:  bool useIPP_NE()
+    private static native boolean useIPP_NE_0();
 
     // C++:  double Mahalanobis(Mat v1, Mat v2, Mat icovar)
     private static native double Mahalanobis_0(long v1_nativeObj, long v2_nativeObj, long icovar_nativeObj);
@@ -2496,6 +2558,9 @@ public static MinMaxLocResult minMaxLoc(Mat src) {
     private static native void divide_6(double scale, long src2_nativeObj, long dst_nativeObj, int dtype);
     private static native void divide_7(double scale, long src2_nativeObj, long dst_nativeObj);
 
+    // C++:  void eigenNonSymmetric(Mat src, Mat& eigenvalues, Mat& eigenvectors)
+    private static native void eigenNonSymmetric_0(long src_nativeObj, long eigenvalues_nativeObj, long eigenvectors_nativeObj);
+
     // C++:  void exp(Mat src, Mat& dst)
     private static native void exp_0(long src_nativeObj, long dst_nativeObj);
 
@@ -2669,6 +2734,9 @@ public static MinMaxLocResult minMaxLoc(Mat src) {
 
     // C++:  void setUseIPP(bool flag)
     private static native void setUseIPP_0(boolean flag);
+
+    // C++:  void setUseIPP_NE(bool flag)
+    private static native void setUseIPP_NE_0(boolean flag);
 private static native double[] n_minMaxLocManual(long src_nativeObj, long mask_nativeObj);
 
 }

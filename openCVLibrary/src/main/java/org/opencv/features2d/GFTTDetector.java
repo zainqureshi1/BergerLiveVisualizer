@@ -4,13 +4,36 @@
 //
 package org.opencv.features2d;
 
-
+import java.lang.String;
 
 // C++: class GFTTDetector
 //javadoc: GFTTDetector
 public class GFTTDetector extends Feature2D {
 
     protected GFTTDetector(long addr) { super(addr); }
+
+
+    //
+    // C++: static Ptr_GFTTDetector create(int maxCorners, double qualityLevel, double minDistance, int blockSize, int gradiantSize, bool useHarrisDetector = false, double k = 0.04)
+    //
+
+    //javadoc: GFTTDetector::create(maxCorners, qualityLevel, minDistance, blockSize, gradiantSize, useHarrisDetector, k)
+    public static GFTTDetector create(int maxCorners, double qualityLevel, double minDistance, int blockSize, int gradiantSize, boolean useHarrisDetector, double k)
+    {
+        
+        GFTTDetector retVal = new GFTTDetector(create_0(maxCorners, qualityLevel, minDistance, blockSize, gradiantSize, useHarrisDetector, k));
+        
+        return retVal;
+    }
+
+    //javadoc: GFTTDetector::create(maxCorners, qualityLevel, minDistance, blockSize, gradiantSize)
+    public static GFTTDetector create(int maxCorners, double qualityLevel, double minDistance, int blockSize, int gradiantSize)
+    {
+        
+        GFTTDetector retVal = new GFTTDetector(create_1(maxCorners, qualityLevel, minDistance, blockSize, gradiantSize));
+        
+        return retVal;
+    }
 
 
     //
@@ -21,7 +44,7 @@ public class GFTTDetector extends Feature2D {
     public static GFTTDetector create(int maxCorners, double qualityLevel, double minDistance, int blockSize, boolean useHarrisDetector, double k)
     {
         
-        GFTTDetector retVal = new GFTTDetector(create_0(maxCorners, qualityLevel, minDistance, blockSize, useHarrisDetector, k));
+        GFTTDetector retVal = new GFTTDetector(create_2(maxCorners, qualityLevel, minDistance, blockSize, useHarrisDetector, k));
         
         return retVal;
     }
@@ -30,7 +53,21 @@ public class GFTTDetector extends Feature2D {
     public static GFTTDetector create()
     {
         
-        GFTTDetector retVal = new GFTTDetector(create_1());
+        GFTTDetector retVal = new GFTTDetector(create_3());
+        
+        return retVal;
+    }
+
+
+    //
+    // C++:  String getDefaultName()
+    //
+
+    //javadoc: GFTTDetector::getDefaultName()
+    public  String getDefaultName()
+    {
+        
+        String retVal = getDefaultName_0(nativeObj);
         
         return retVal;
     }
@@ -211,9 +248,16 @@ public class GFTTDetector extends Feature2D {
 
 
 
+    // C++: static Ptr_GFTTDetector create(int maxCorners, double qualityLevel, double minDistance, int blockSize, int gradiantSize, bool useHarrisDetector = false, double k = 0.04)
+    private static native long create_0(int maxCorners, double qualityLevel, double minDistance, int blockSize, int gradiantSize, boolean useHarrisDetector, double k);
+    private static native long create_1(int maxCorners, double qualityLevel, double minDistance, int blockSize, int gradiantSize);
+
     // C++: static Ptr_GFTTDetector create(int maxCorners = 1000, double qualityLevel = 0.01, double minDistance = 1, int blockSize = 3, bool useHarrisDetector = false, double k = 0.04)
-    private static native long create_0(int maxCorners, double qualityLevel, double minDistance, int blockSize, boolean useHarrisDetector, double k);
-    private static native long create_1();
+    private static native long create_2(int maxCorners, double qualityLevel, double minDistance, int blockSize, boolean useHarrisDetector, double k);
+    private static native long create_3();
+
+    // C++:  String getDefaultName()
+    private static native String getDefaultName_0(long nativeObj);
 
     // C++:  bool getHarrisDetector()
     private static native boolean getHarrisDetector_0(long nativeObj);

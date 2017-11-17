@@ -100,6 +100,14 @@ public class StillFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (drawingView != null) {
+            drawingView.destroy();
+        }
+    }
+
     public void setFillColor(int color) {
         mFillColor = color;
         if (drawingView != null) {

@@ -20,6 +20,20 @@ public class Feature2D extends Algorithm {
 
 
     //
+    // C++:  String getDefaultName()
+    //
+
+    //javadoc: Feature2D::getDefaultName()
+    public  String getDefaultName()
+    {
+        
+        String retVal = getDefaultName_0(nativeObj);
+        
+        return retVal;
+    }
+
+
+    //
     // C++:  bool empty()
     //
 
@@ -217,6 +231,9 @@ public class Feature2D extends Algorithm {
     }
 
 
+
+    // C++:  String getDefaultName()
+    private static native String getDefaultName_0(long nativeObj);
 
     // C++:  bool empty()
     private static native boolean empty_0(long nativeObj);

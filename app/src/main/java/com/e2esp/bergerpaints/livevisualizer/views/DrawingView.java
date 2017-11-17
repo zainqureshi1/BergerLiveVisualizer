@@ -191,4 +191,10 @@ public class DrawingView extends View {
         }
     }
 
+    public void destroy() {
+        if (watershedSegmenter != null) {
+            watershedSegmenter.destroy();
+        }
+    }
+
 }

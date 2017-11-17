@@ -22,14 +22,14 @@ public class Dnn {
 
 
     //
-    // C++:  Mat blobFromImage(Mat image, double scalefactor = 1.0, Size size = Size(), Scalar mean = Scalar(), bool swapRB = true)
+    // C++:  Mat blobFromImage(Mat image, double scalefactor = 1.0, Size size = Size(), Scalar mean = Scalar(), bool swapRB = true, bool crop = true)
     //
 
-    //javadoc: blobFromImage(image, scalefactor, size, mean, swapRB)
-    public static Mat blobFromImage(Mat image, double scalefactor, Size size, Scalar mean, boolean swapRB)
+    //javadoc: blobFromImage(image, scalefactor, size, mean, swapRB, crop)
+    public static Mat blobFromImage(Mat image, double scalefactor, Size size, Scalar mean, boolean swapRB, boolean crop)
     {
         
-        Mat retVal = new Mat(blobFromImage_0(image.nativeObj, scalefactor, size.width, size.height, mean.val[0], mean.val[1], mean.val[2], mean.val[3], swapRB));
+        Mat retVal = new Mat(blobFromImage_0(image.nativeObj, scalefactor, size.width, size.height, mean.val[0], mean.val[1], mean.val[2], mean.val[3], swapRB, crop));
         
         return retVal;
     }
@@ -45,14 +45,14 @@ public class Dnn {
 
 
     //
-    // C++:  Mat blobFromImages(vector_Mat images, double scalefactor = 1.0, Size size = Size(), Scalar mean = Scalar(), bool swapRB = true)
+    // C++:  Mat blobFromImages(vector_Mat images, double scalefactor = 1.0, Size size = Size(), Scalar mean = Scalar(), bool swapRB = true, bool crop = true)
     //
 
-    //javadoc: blobFromImages(images, scalefactor, size, mean, swapRB)
-    public static Mat blobFromImages(List<Mat> images, double scalefactor, Size size, Scalar mean, boolean swapRB)
+    //javadoc: blobFromImages(images, scalefactor, size, mean, swapRB, crop)
+    public static Mat blobFromImages(List<Mat> images, double scalefactor, Size size, Scalar mean, boolean swapRB, boolean crop)
     {
         Mat images_mat = Converters.vector_Mat_to_Mat(images);
-        Mat retVal = new Mat(blobFromImages_0(images_mat.nativeObj, scalefactor, size.width, size.height, mean.val[0], mean.val[1], mean.val[2], mean.val[3], swapRB));
+        Mat retVal = new Mat(blobFromImages_0(images_mat.nativeObj, scalefactor, size.width, size.height, mean.val[0], mean.val[1], mean.val[2], mean.val[3], swapRB, crop));
         
         return retVal;
     }
@@ -114,14 +114,46 @@ public class Dnn {
 
 
     //
-    // C++:  Net readNetFromTensorflow(String model)
+    // C++:  Net readNetFromDarknet(String cfgFile, String darknetModel = String())
     //
+
+    //javadoc: readNetFromDarknet(cfgFile, darknetModel)
+    public static Net readNetFromDarknet(String cfgFile, String darknetModel)
+    {
+        
+        Net retVal = new Net(readNetFromDarknet_0(cfgFile, darknetModel));
+        
+        return retVal;
+    }
+
+    //javadoc: readNetFromDarknet(cfgFile)
+    public static Net readNetFromDarknet(String cfgFile)
+    {
+        
+        Net retVal = new Net(readNetFromDarknet_1(cfgFile));
+        
+        return retVal;
+    }
+
+
+    //
+    // C++:  Net readNetFromTensorflow(String model, String config = String())
+    //
+
+    //javadoc: readNetFromTensorflow(model, config)
+    public static Net readNetFromTensorflow(String model, String config)
+    {
+        
+        Net retVal = new Net(readNetFromTensorflow_0(model, config));
+        
+        return retVal;
+    }
 
     //javadoc: readNetFromTensorflow(model)
     public static Net readNetFromTensorflow(String model)
     {
         
-        Net retVal = new Net(readNetFromTensorflow_0(model));
+        Net retVal = new Net(readNetFromTensorflow_1(model));
         
         return retVal;
     }
@@ -210,14 +242,28 @@ public class Dnn {
     }
 
 
+    //
+    // C++:  void shrinkCaffeModel(String src, String dst)
+    //
+
+    //javadoc: shrinkCaffeModel(src, dst)
+    public static void shrinkCaffeModel(String src, String dst)
+    {
+        
+        shrinkCaffeModel_0(src, dst);
+        
+        return;
+    }
 
 
-    // C++:  Mat blobFromImage(Mat image, double scalefactor = 1.0, Size size = Size(), Scalar mean = Scalar(), bool swapRB = true)
-    private static native long blobFromImage_0(long image_nativeObj, double scalefactor, double size_width, double size_height, double mean_val0, double mean_val1, double mean_val2, double mean_val3, boolean swapRB);
+
+
+    // C++:  Mat blobFromImage(Mat image, double scalefactor = 1.0, Size size = Size(), Scalar mean = Scalar(), bool swapRB = true, bool crop = true)
+    private static native long blobFromImage_0(long image_nativeObj, double scalefactor, double size_width, double size_height, double mean_val0, double mean_val1, double mean_val2, double mean_val3, boolean swapRB, boolean crop);
     private static native long blobFromImage_1(long image_nativeObj);
 
-    // C++:  Mat blobFromImages(vector_Mat images, double scalefactor = 1.0, Size size = Size(), Scalar mean = Scalar(), bool swapRB = true)
-    private static native long blobFromImages_0(long images_mat_nativeObj, double scalefactor, double size_width, double size_height, double mean_val0, double mean_val1, double mean_val2, double mean_val3, boolean swapRB);
+    // C++:  Mat blobFromImages(vector_Mat images, double scalefactor = 1.0, Size size = Size(), Scalar mean = Scalar(), bool swapRB = true, bool crop = true)
+    private static native long blobFromImages_0(long images_mat_nativeObj, double scalefactor, double size_width, double size_height, double mean_val0, double mean_val1, double mean_val2, double mean_val3, boolean swapRB, boolean crop);
     private static native long blobFromImages_1(long images_mat_nativeObj);
 
     // C++:  Mat readTorchBlob(String filename, bool isBinary = true)
@@ -228,8 +274,13 @@ public class Dnn {
     private static native long readNetFromCaffe_0(String prototxt, String caffeModel);
     private static native long readNetFromCaffe_1(String prototxt);
 
-    // C++:  Net readNetFromTensorflow(String model)
-    private static native long readNetFromTensorflow_0(String model);
+    // C++:  Net readNetFromDarknet(String cfgFile, String darknetModel = String())
+    private static native long readNetFromDarknet_0(String cfgFile, String darknetModel);
+    private static native long readNetFromDarknet_1(String cfgFile);
+
+    // C++:  Net readNetFromTensorflow(String model, String config = String())
+    private static native long readNetFromTensorflow_0(String model, String config);
+    private static native long readNetFromTensorflow_1(String model);
 
     // C++:  Net readNetFromTorch(String model, bool isBinary = true)
     private static native long readNetFromTorch_0(String model, boolean isBinary);
@@ -245,5 +296,8 @@ public class Dnn {
     // C++:  Ptr_Importer createTorchImporter(String filename, bool isBinary = true)
     private static native long createTorchImporter_0(String filename, boolean isBinary);
     private static native long createTorchImporter_1(String filename);
+
+    // C++:  void shrinkCaffeModel(String src, String dst)
+    private static native void shrinkCaffeModel_0(String src, String dst);
 
 }
