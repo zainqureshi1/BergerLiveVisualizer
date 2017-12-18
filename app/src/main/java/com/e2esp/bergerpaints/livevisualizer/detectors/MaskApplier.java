@@ -24,10 +24,12 @@ public class MaskApplier {
 
         // Set H and S channels to fill color using given mask
         if (mHsvChannels.size() > 0) {
-            mHsvChannels.get(0).setTo(Scalar.all(fillHsv.val[0]), mask);
+            // Mat.setTo unnecessarily creates a new Mat with same native mat
+            // so must release to avoid memory leak
+            mHsvChannels.get(0).setTo(Scalar.all(fillHsv.val[0]), mask).release();
         }
         if (mHsvChannels.size() > 1) {
-            mHsvChannels.get(1).setTo(Scalar.all(fillHsv.val[1]), mask);
+            mHsvChannels.get(1).setTo(Scalar.all(fillHsv.val[1]), mask).release();
         }
 
         // Merge channels back into single Mat
