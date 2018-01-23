@@ -163,7 +163,7 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
         colorWhite = ContextCompat.getColor(this, R.color.white);
         colorBlack = ContextCompat.getColor(this, R.color.black);
 
-        imageViewColorSelection = (ImageView) findViewById(R.id.imageViewColorSelection);
+        imageViewColorSelection = findViewById(R.id.imageViewColorSelection);
         imageViewColorSelection.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -176,10 +176,10 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
             }
         });
 
-        textViewColorSelectionName = (AppCompatTextView) findViewById(R.id.textViewColorSelectionName);
+        textViewColorSelectionName = findViewById(R.id.textViewColorSelectionName);
         textViewColorSelectionName.setText("");
 
-        textViewProductColors = (AppCompatTextView) findViewById(R.id.textViewProductColors);
+        textViewProductColors = findViewById(R.id.textViewProductColors);
         textViewProductColors.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -191,7 +191,7 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
                 }
             }
         });
-        textViewSymphonyColors = (AppCompatTextView) findViewById(R.id.textViewSymphonyColors);
+        textViewSymphonyColors = findViewById(R.id.textViewSymphonyColors);
         textViewSymphonyColors.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -204,12 +204,12 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
             }
         });
 
-        textViewColorShades = (AppCompatTextView) findViewById(R.id.textViewColorShades);
+        textViewColorShades = findViewById(R.id.textViewColorShades);
 
         viewContainerColorsTray = findViewById(R.id.viewContainerColorsTray);
-        linearLayoutColorsTrayContainer = (LinearLayout) findViewById(R.id.linearLayoutColorsTrayContainer);
+        linearLayoutColorsTrayContainer = findViewById(R.id.linearLayoutColorsTrayContainer);
 
-        recyclerViewColorsTray = (RecyclerView) findViewById(R.id.recyclerViewColorsTray);
+        recyclerViewColorsTray = findViewById(R.id.recyclerViewColorsTray);
         allColorsList = new ArrayList<>();
         activeColorsList = new ArrayList<>();
         colorsRecyclerAdapter = new ColorsTrayRecyclerAdapter(this, activeColorsList, new OnTraysColorClickListener() {
@@ -221,7 +221,7 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
         recyclerViewColorsTray.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         recyclerViewColorsTray.setAdapter(colorsRecyclerAdapter);
 
-        recyclerViewProductsTray = (RecyclerView) findViewById(R.id.recyclerViewProductsTray);
+        recyclerViewProductsTray = findViewById(R.id.recyclerViewProductsTray);
         allProductColorsList = new ArrayList<>();
         activeProductColorsList = new ArrayList<>();
         productsRecyclerAdapter = new ProductsTrayRecyclerAdapter(this, activeProductColorsList, new OnTraysProductClickListener() {
@@ -233,7 +233,7 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
         recyclerViewProductsTray.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         recyclerViewProductsTray.setAdapter(productsRecyclerAdapter);
 
-        spinnerOptions = (Spinner) findViewById(R.id.spinnerOptions);
+        spinnerOptions = findViewById(R.id.spinnerOptions);
         optionsList = new ArrayList<>();
         optionsNamesList = new ArrayList<>();
         optionsAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, optionsNamesList);
@@ -241,7 +241,7 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
         spinnerOptions.setOnItemSelectedListener(optionSelectedListener);
         updateOptionsList();
 
-        ImageButton imageButtonSaveOptions = (ImageButton) findViewById(R.id.imageButtonSaveOptions);
+        ImageButton imageButtonSaveOptions = findViewById(R.id.imageButtonSaveOptions);
         imageButtonSaveOptions.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -313,24 +313,24 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
 
         viewContainerFragments = findViewById(R.id.viewContainerFragments);
 
-        seekBarHue = (VerticalSeekBar) findViewById(R.id.seekBarHue);
+        seekBarHue = findViewById(R.id.seekBarHue);
         seekBarHue.setProgress(Utility.colorToPercentTolerance(INTERIOR_TOLERANCE[0], 360));
         seekBarHue.setTag(0);
         seekBarHue.setOnSeekBarChangeListener(toleranceChangeListener);
 
-        seekBarSat = (VerticalSeekBar) findViewById(R.id.seekBarSat);
+        seekBarSat = findViewById(R.id.seekBarSat);
         seekBarSat.setProgress(Utility.colorToPercentTolerance(INTERIOR_TOLERANCE[1], 255));
         seekBarSat.setTag(1);
         seekBarSat.setOnSeekBarChangeListener(toleranceChangeListener);
 
-        seekBarVal = (VerticalSeekBar) findViewById(R.id.seekBarVal);
+        seekBarVal = findViewById(R.id.seekBarVal);
         seekBarVal.setProgress(Utility.colorToPercentTolerance(INTERIOR_TOLERANCE[2], 255));
         seekBarVal.setTag(2);
         seekBarVal.setOnSeekBarChangeListener(toleranceChangeListener);
 
-        textViewHue = (AppCompatTextView) findViewById(R.id.textViewHue);
-        textViewSat = (AppCompatTextView) findViewById(R.id.textViewSat);
-        textViewVal = (AppCompatTextView) findViewById(R.id.textViewVal);
+        textViewHue = findViewById(R.id.textViewHue);
+        textViewSat = findViewById(R.id.textViewSat);
+        textViewVal = findViewById(R.id.textViewVal);
 
         String stringH = "H:"+INTERIOR_TOLERANCE[0];
         String stringS = "S:"+INTERIOR_TOLERANCE[1];
@@ -438,9 +438,9 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_save);
 
-        AppCompatTextView textView = (AppCompatTextView) dialog.findViewById(R.id.textViewSave);
-        final EditText editText = (EditText) dialog.findViewById(R.id.editTextSave);
-        Button button = (Button) dialog.findViewById(R.id.buttonSave);
+        AppCompatTextView textView = dialog.findViewById(R.id.textViewSave);
+        final EditText editText = dialog.findViewById(R.id.editTextSave);
+        Button button = dialog.findViewById(R.id.buttonSave);
 
         final Options options = currentSelectionsToOptions();
         textView.setText(options.getTextToShow());
@@ -1164,29 +1164,29 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
         secondaryColors.add(new SecondaryColor(Color.parseColor("#7f4243"), "Tile Red", "5200"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#83804d"), "Leaf Green", "2250"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#99675f"), "Rust", "5099"));
-        secondaryColors.add(new SecondaryColor(Color.parseColor("#68554e"), "Choclate", "5105"));
+        secondaryColors.add(new SecondaryColor(Color.parseColor("#68554e"), "Chocolate", "5105"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#a68551"), "Gold Mist", "3154"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#3d6098"), "Blue Street", "1111"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#dba07f"), "Peach Country", "5096"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#b5d3e9"), "Celestial", "1119"));
-        secondaryColors.add(new SecondaryColor(Color.parseColor("#f7f3ea"), "off.White", "0010"));
+        secondaryColors.add(new SecondaryColor(Color.parseColor("#f7f3ea"), "Off White", "0010"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#e6e5e3"), "Lavender White", "0474"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#9db9dc"), "Ocean Blue", "1127"));
-        secondaryColors.add(new SecondaryColor(Color.parseColor("#ecb7a5"), "Shophistication", "4123"));
+        secondaryColors.add(new SecondaryColor(Color.parseColor("#ecb7a5"), "Sophistication", "4123"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#e0dcd3"), "Ash White", "0110"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#deb8af"), "Candy Floss", "4083"));
-        secondaryColors.add(new SecondaryColor(Color.parseColor("#cdcadf"), "Ochard Lane", "7201"));
+        secondaryColors.add(new SecondaryColor(Color.parseColor("#cdcadf"), "Orchard Lane", "7201"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#8877a6"), "Elegance", "4070"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#e8a3a9"), "Bliss", "4084"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#ebaeb6"), "Rose Bouquet", "7238"));
-        secondaryColors.add(new SecondaryColor(Color.parseColor("#f6eace"), "off.White Plus", "0120"));
+        secondaryColors.add(new SecondaryColor(Color.parseColor("#f6eace"), "Off White Plus", "0120"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#e7dbca"), "Ivory Silk", "3179"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#e5ccca"), "Summer Pink", "7358"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#dbd5e3"), "Lace", "4054"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#e0c8d8"), "Delicate Pink", "7236"));
-        secondaryColors.add(new SecondaryColor(Color.parseColor("#f5dd94"), "Ribon Yellow", "3178"));
-        secondaryColors.add(new SecondaryColor(Color.parseColor("#dac9b2"), "Cockelshell", "3442"));
-        secondaryColors.add(new SecondaryColor(Color.parseColor("#e7e1e1"), "Pink Voilet", "5095"));
+        secondaryColors.add(new SecondaryColor(Color.parseColor("#f5dd94"), "Ribbon Yellow", "3178"));
+        secondaryColors.add(new SecondaryColor(Color.parseColor("#dac9b2"), "Cockleshell", "3442"));
+        secondaryColors.add(new SecondaryColor(Color.parseColor("#e7e1e1"), "Pink Violet", "5095"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#e9cfbc"), "Peach Goddess", "3149"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#dfb9cf"), "Swiss Miss", "7237"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#d9dadc"), "Pearl Glow", "7239"));
@@ -1198,7 +1198,7 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
         secondaryColors.add(new SecondaryColor(Color.parseColor("#8995a3"), "Thunder Grey", "6157"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#bb70a4"), "Carnival Pink", "7359"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#fac166"), "Mango Mood", "3153"));
-        secondaryColors.add(new SecondaryColor(Color.parseColor("#c1745a"), "Flery Volcano", "5103"));
+        secondaryColors.add(new SecondaryColor(Color.parseColor("#c1745a"), "Fiery Volcano", "5103"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#dbe4ad"), "Fresh Sprout", "2111"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#c06258"), "Oriental Copper", "5098"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#c5dec0"), "Mint Leaf", "2112"));
@@ -1237,7 +1237,7 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
         secondaryColors.add(new SecondaryColor(Color.parseColor("#9A3C3B"), "Signal Red", "5800"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#999D92"), "Slate Grey", "6400"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#7E8B91"), "Smoke Grey,", "6340"));
-        secondaryColors.add(new SecondaryColor(Color.parseColor("#F4EED5"), "Vanila Ice", "1682"));
+        secondaryColors.add(new SecondaryColor(Color.parseColor("#F4EED5"), "Vanilla Ice", "1682"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#E6ECF2"), "White,", "0000"));
 
         allProductColorsList.add(new ProductColor("VIP Super Gloss", R.drawable.berger_vip_super_gloss_enamel, secondaryColors));
@@ -1290,7 +1290,7 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
         // All Rounder Matt Enamel
         secondaryColors = new ArrayList<>();
         secondaryColors.add(new SecondaryColor(Color.parseColor("#FFFAF0"), "Off white Plus", "0120"));
-        secondaryColors.add(new SecondaryColor(Color.parseColor("#FFF3E7"), "D/R off White", "0229"));
+        secondaryColors.add(new SecondaryColor(Color.parseColor("#FFF3E7"), "D/R Off White", "0229"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#EFE3D9"), "Satin Magnolia", "3249"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#F3E7DE"), "Reflection", "0317"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#EBE4D4"), "Kitten White", "0222"));
@@ -1359,7 +1359,7 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
         secondaryColors.add(new SecondaryColor(Color.parseColor("#E0CFB3"), "Sugar Cane", "3092"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#E4BEAB"), "Sweet Jewel", "4058"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#C5B2A9"), "Tea Rose", "4810"));
-        secondaryColors.add(new SecondaryColor(Color.parseColor("#B9846E"), "Terra Cotta", "6901"));
+        secondaryColors.add(new SecondaryColor(Color.parseColor("#B9846E"), "Terracotta", "6901"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#AD615C"), "Tile Red", "5054"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#AE6144"), "Multani Tile", "5354"));
         secondaryColors.add(new SecondaryColor(Color.parseColor("#35544D"), "Lake Green", "2186"));

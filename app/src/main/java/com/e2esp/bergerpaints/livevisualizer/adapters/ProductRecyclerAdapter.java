@@ -21,19 +21,19 @@ import java.util.ArrayList;
 
 public class ProductRecyclerAdapter extends RecyclerView.Adapter<ProductRecyclerAdapter.ProductViewHolder> {
 
-    private Context context;
+    private LayoutInflater inflater;
     private ArrayList<Product> productsList;
     private OnProductClickListener onProductClickListener;
 
     public ProductRecyclerAdapter(Context context, ArrayList<Product> productsList, OnProductClickListener onProductClickListener) {
-        this.context = context;
+        this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.productsList = productsList;
         this.onProductClickListener = onProductClickListener;
     }
 
     @Override
     public ProductViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = ((LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.card_product_layout, parent, false);
+        View view = inflater.inflate(R.layout.card_product_layout, parent, false);
         return new ProductViewHolder(view);
     }
 
@@ -57,11 +57,11 @@ public class ProductRecyclerAdapter extends RecyclerView.Adapter<ProductRecycler
 
         ProductViewHolder(View itemView) {
             super(itemView);
-            imageView = (ImageView) itemView.findViewById(R.id.imageViewProduct);
-            textViewTitle = (TextView) itemView.findViewById(R.id.textViewProductTitle);
-            textViewDescription = (TextView) itemView.findViewById(R.id.textViewProductDescription);
-            textViewLearnMore = (TextView) itemView.findViewById(R.id.textViewProductLearnMore);
-            textViewVisualizeColors = (TextView) itemView.findViewById(R.id.textViewProductVisualizeColors);
+            imageView = itemView.findViewById(R.id.imageViewProduct);
+            textViewTitle = itemView.findViewById(R.id.textViewProductTitle);
+            textViewDescription = itemView.findViewById(R.id.textViewProductDescription);
+            textViewLearnMore = itemView.findViewById(R.id.textViewProductLearnMore);
+            textViewVisualizeColors = itemView.findViewById(R.id.textViewProductVisualizeColors);
         }
 
         void bindView(final Product product) {

@@ -36,7 +36,7 @@ public class ProductsActivity extends AppCompatActivity {
     }
 
     private void setupView() {
-        RecyclerView recyclerViewProducts = (RecyclerView) findViewById(R.id.recyclerViewProducts);
+        RecyclerView recyclerViewProducts = findViewById(R.id.recyclerViewProducts);
         arrayListProducts = new ArrayList<>();
         productRecyclerAdapter = new ProductRecyclerAdapter(this, arrayListProducts, new OnProductClickListener() {
             @Override

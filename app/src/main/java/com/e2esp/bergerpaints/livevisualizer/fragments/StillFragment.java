@@ -78,7 +78,7 @@ public class StillFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_still, container, false);
 
-        ViewGroup viewContainerDrawing = (ViewGroup) view.findViewById(R.id.viewContainerDrawing);
+        ViewGroup viewContainerDrawing = view.findViewById(R.id.viewContainerDrawing);
 
         if (mRgba != null) {
             Bitmap bitmap = Utility.matToBitmap(mRgba);
@@ -159,8 +159,8 @@ public class StillFragment extends Fragment {
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_save);
 
-        final EditText editText = (EditText) dialog.findViewById(R.id.editTextSave);
-        Button button = (Button) dialog.findViewById(R.id.buttonSave);
+        final EditText editText = dialog.findViewById(R.id.editTextSave);
+        Button button = dialog.findViewById(R.id.buttonSave);
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -1,5 +1,6 @@
 package com.e2esp.bergerpaints.livevisualizer.fragments;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -116,7 +117,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_camera, container, false);
 
-        cameraView = (JavaCameraView) view.findViewById(R.id.cameraView);
+        cameraView = view.findViewById(R.id.cameraView);
         cameraView.setVisibility(SurfaceView.VISIBLE);
         //cameraView.setMaxFrameSize(1280, 720);
         cameraView.setCvCameraViewListener(cameraViewListener);
@@ -153,6 +154,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     public boolean onTouch(View v, MotionEvent event) {
         if (cols <= 0 || rows <= 0) {
             return false;

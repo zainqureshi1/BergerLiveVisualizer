@@ -20,19 +20,19 @@ import java.util.ArrayList;
 
 public class ColorsTrayRecyclerAdapter extends RecyclerView.Adapter<ColorsTrayRecyclerAdapter.ColorsViewHolder> {
 
-    private Context context;
+    private LayoutInflater inflater;
     private ArrayList<PrimaryColor> colorsList;
     private OnTraysColorClickListener onColorClickListener;
 
     public ColorsTrayRecyclerAdapter(Context context, ArrayList<PrimaryColor> colorsList, OnTraysColorClickListener onColorClickListener) {
-        this.context = context;
+        this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.colorsList = colorsList;
         this.onColorClickListener = onColorClickListener;
     }
 
     @Override
     public ColorsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = ((LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.tray_item_color_layout, parent, false);
+        View view = inflater.inflate(R.layout.tray_item_color_layout, parent, false);
         return new ColorsViewHolder(view);
     }
 
@@ -52,7 +52,7 @@ public class ColorsTrayRecyclerAdapter extends RecyclerView.Adapter<ColorsTrayRe
 
         ColorsViewHolder(View itemView) {
             super(itemView);
-            imageViewPrimaryColor = (ImageView) itemView.findViewById(R.id.imageViewPrimaryColor);
+            imageViewPrimaryColor = itemView.findViewById(R.id.imageViewPrimaryColor);
         }
 
         void bindView(final PrimaryColor primaryColor) {

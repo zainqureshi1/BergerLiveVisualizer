@@ -21,19 +21,19 @@ import java.util.ArrayList;
 
 public class ProductsTrayRecyclerAdapter extends RecyclerView.Adapter<ProductsTrayRecyclerAdapter.ColorsViewHolder> {
 
-    private Context context;
+    private LayoutInflater inflater;
     private ArrayList<ProductColor> colorsList;
     private OnTraysProductClickListener onProductClickListener;
 
     public ProductsTrayRecyclerAdapter(Context context, ArrayList<ProductColor> colorsList, OnTraysProductClickListener onProductClickListener) {
-        this.context = context;
+        this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.colorsList = colorsList;
         this.onProductClickListener = onProductClickListener;
     }
 
     @Override
     public ColorsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = ((LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.tray_item_product_layout, parent, false);
+        View view = inflater.inflate(R.layout.tray_item_product_layout, parent, false);
         return new ColorsViewHolder(view);
     }
 
@@ -54,8 +54,8 @@ public class ProductsTrayRecyclerAdapter extends RecyclerView.Adapter<ProductsTr
 
         ColorsViewHolder(View itemView) {
             super(itemView);
-            imageViewProductIcon = (ImageView) itemView.findViewById(R.id.imageViewProductIcon);
-            textViewProductName = (TextView) itemView.findViewById(R.id.textViewProductName);
+            imageViewProductIcon = itemView.findViewById(R.id.imageViewProductIcon);
+            textViewProductName = itemView.findViewById(R.id.textViewProductName);
         }
 
         void bindView(final ProductColor productColor) {

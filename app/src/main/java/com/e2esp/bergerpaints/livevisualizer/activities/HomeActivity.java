@@ -29,9 +29,9 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void setupViews() {
-        AppCompatTextView textViewProductsDescription = (AppCompatTextView) findViewById(R.id.textViewBergerProductsDescription);
+        AppCompatTextView textViewProductsDescription = findViewById(R.id.textViewBergerProductsDescription);
         textViewProductsDescription.setMovementMethod(new ScrollingMovementMethod());
-        AppCompatTextView textViewBergerVisualizerDescription = (AppCompatTextView) findViewById(R.id.textViewBergerVisualizerDescription);
+        AppCompatTextView textViewBergerVisualizerDescription = findViewById(R.id.textViewBergerVisualizerDescription);
         textViewBergerVisualizerDescription.setMovementMethod(new ScrollingMovementMethod());
 
         findViewById(R.id.buttonViewAllProducts).setOnClickListener(new View.OnClickListener() {
