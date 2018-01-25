@@ -38,6 +38,7 @@ import com.e2esp.bergerpaints.livevisualizer.fragments.StillFragment;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnFragmentInteractionListener;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnTraysColorClickListener;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnTraysProductClickListener;
+import com.e2esp.bergerpaints.livevisualizer.models.FillResult;
 import com.e2esp.bergerpaints.livevisualizer.models.Options;
 import com.e2esp.bergerpaints.livevisualizer.models.PrimaryColor;
 import com.e2esp.bergerpaints.livevisualizer.models.Product;
@@ -62,6 +63,8 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
     public static final int[] EXTERIOR_TOLERANCE = {24, 10, 4};
     // Test
     //public static final int[] DEFAULT_TOLERANCE = {30, 40, 40};
+
+    public static final int OVERLAY_ALPHA = 230;
 
     public static boolean useExteriorTolerance;
 
@@ -1633,12 +1636,12 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
         }
     }
 
-    private void showStillScreen(final Mat rgba, final ArrayList<Mat> masks) {
+    private void showStillScreen(final Mat rgba, final ArrayList<FillResult> fillResults) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 StillFragment.mRgba = rgba;
-                StillFragment.mFloodMasks = masks;
+                StillFragment.mFillResults = fillResults;
                 showFragment(FRAGMENT_INDEX_STILL);
             }
         });
@@ -1677,8 +1680,8 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
                 break;
             case SHOW_STILL_SCREEN:
                 Mat rgba = (Mat) objs[0];
-                ArrayList<Mat> masks = (ArrayList<Mat>) objs[1];
-                showStillScreen(rgba, masks);
+                ArrayList<FillResult> fillResults = (ArrayList<FillResult>) objs[1];
+                showStillScreen(rgba, fillResults);
                 break;
             case TOGGLE_CROP_ACTIONS:
                 boolean isCropping = (boolean) objs[0];

@@ -193,7 +193,7 @@ public class Utility {
             file.createNewFile();
 
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 0, byteArrayOutputStream);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
             byte[] byteArray = byteArrayOutputStream.toByteArray();
 
             FileOutputStream fileOutputStream = new FileOutputStream(file);

@@ -12,17 +12,19 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.e2esp.bergerpaints.livevisualizer.R;
-import com.e2esp.bergerpaints.livevisualizer.detectors.MaskApplier;
+import com.e2esp.bergerpaints.livevisualizer.activities.VisualizerActivity;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnDrawingTouchListener;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnFragmentInteractionListener;
 import com.e2esp.bergerpaints.livevisualizer.interfaces.OnWatershedTabChangeListener;
+import com.e2esp.bergerpaints.livevisualizer.models.FillResult;
 import com.e2esp.bergerpaints.livevisualizer.utils.PermissionManager;
 import com.e2esp.bergerpaints.livevisualizer.utils.Utility;
 import com.e2esp.bergerpaints.livevisualizer.views.DrawingView;
 
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -36,9 +38,12 @@ public class StillFragment extends Fragment {
     //private final String TAG = "StillFragment";
 
     public static Mat mRgba;
-    public static ArrayList<Mat> mFloodMasks;
-    private Mat mFloodMask;
-    private MaskApplier mMaskApplier;
+    public static ArrayList<FillResult> mFillResults;
+    private FillResult mFillResult;
+
+    private Mat mOverlayMat;
+    private Mat mUnderlayMat;
+    private Mat mFinalMat;
 
     private OnFragmentInteractionListener onFragmentInteractionListener;
 
@@ -101,10 +106,22 @@ public class StillFragment extends Fragment {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDestroyView() {
+        super.onDestroyView();
         if (drawingView != null) {
             drawingView.destroy();
+        }
+        if (mOverlayMat != null) {
+            mOverlayMat.release();
+            mOverlayMat = null;
+        }
+        if (mUnderlayMat != null) {
+            mUnderlayMat.release();
+            mUnderlayMat = null;
+        }
+        if (mFinalMat != null) {
+            mFinalMat.release();
+            mFinalMat = null;
         }
     }
 
@@ -124,6 +141,14 @@ public class StillFragment extends Fragment {
                 }
             }
         }
+    }
+
+    private Scalar getFillColorRgba() {
+        if (mFillColor == -1) {
+            return Scalar.all(0);
+        }
+        int[] rgb = Utility.colorIntToRgb(mFillColor);
+        return new Scalar(rgb[0], rgb[1], rgb[2], VisualizerActivity.OVERLAY_ALPHA);
     }
 
     public void stopWatershedding() {
@@ -150,7 +175,7 @@ public class StillFragment extends Fragment {
     }
 
     public void saveImage() {
-        String fileName = getString(R.string.app_name)+"_"+System.currentTimeMillis()+".png";
+        String fileName = getString(R.string.app_name)+"_"+System.currentTimeMillis()+".jpg";
         saveFile(fileName);
     }
 
@@ -184,7 +209,13 @@ public class StillFragment extends Fragment {
         PermissionManager.getInstance().checkPermissionRequest(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE, 121, "App require permission to save image", new PermissionManager.Callback() {
             @Override
             public void onGranted() {
-                Bitmap bitmap = Utility.matToBitmap(mRgba);
+                if (drawingView == null) {
+                    return;
+                }
+                Bitmap bitmap = drawingView.getImage();
+                if (bitmap == null) {
+                    return;
+                }
                 File file = Utility.saveToStorage(getContext(), bitmap, fileName);
                 if (file != null) {
                     Utility.showToast(getContext(), "Image saved successfully in storage.");
@@ -201,10 +232,10 @@ public class StillFragment extends Fragment {
     }
 
     private void selectFloodMask(int x, int y) {
-        for (Mat mask: mFloodMasks) {
-            double[] maskAtPoint = mask.get(y, x);
+        for (FillResult fillResult: mFillResults) {
+            double[] maskAtPoint = fillResult.getMask().get(y, x);
             if (maskAtPoint != null && maskAtPoint.length > 0 && maskAtPoint[0] > 0) {
-                mFloodMask = mask;
+                mFillResult = fillResult;
                 applyFloodFill();
                 return;
             }
@@ -212,35 +243,39 @@ public class StillFragment extends Fragment {
     }
 
     private void applyFloodFill() {
-        if (mFillColor == -1) {
+        if (mFillResults == null || mFillResults.size() <= 0) {
             return;
         }
-        if (mFloodMask == null && mFloodMasks != null && mFloodMasks.size() > 0) {
-            mFloodMask = mFloodMasks.get(mFloodMasks.size() - 1);
+        if (mFillResult == null) {
+            mFillResult = mFillResults.get(mFillResults.size() - 1);
         }
-        if (mFloodMask == null || mFloodMask.cols() <= 0 || mFloodMask.rows() <= 0) {
-            return;
+        if (mFillColor != -1) {
+            mFillResult.setColor(getFillColorRgba());
         }
 
-        int[] rgb = Utility.colorIntToRgb(mFillColor);
-        Scalar colorRgb = new Scalar(rgb[0], rgb[1], rgb[2]);
-        Scalar colorHsv = Utility.convertScalarRgb2Hsv(colorRgb);
-
-        // Convert RGBA To HSV
-        Mat orgHsv = new Mat();
-        Imgproc.cvtColor(mRgba, orgHsv, Imgproc.COLOR_RGB2HSV);
-
-        // Change H and S channels to Fill Color using Flood Mask
-        if (mMaskApplier == null) {
-            mMaskApplier = new MaskApplier();
+        if (mOverlayMat == null) {
+            mOverlayMat = new Mat(mRgba.size(), CvType.CV_8UC4);
         }
-        mMaskApplier.apply(orgHsv, colorHsv, mFloodMask);
+        Scalar zero = Scalar.all(0);
+        mOverlayMat.setTo(zero).release();
+        if (mUnderlayMat == null) {
+            mUnderlayMat = new Mat(mRgba.size(), CvType.CV_8UC4);
+        }
+        mRgba.copyTo(mUnderlayMat);
 
-        // Convert HSV back to RGB
-        Imgproc.cvtColor(orgHsv, mRgba, Imgproc.COLOR_HSV2RGB);
-        orgHsv.release();
+        for (FillResult fillResult: mFillResults) {
+            mOverlayMat.setTo(fillResult.getColor(), fillResult.getMask()).release();
+            mUnderlayMat.setTo(zero, fillResult.getMask()).release();
+        }
 
-        Bitmap bitmap = Utility.matToBitmap(mRgba);
+        if (mFinalMat == null) {
+            mFinalMat = new Mat(mRgba.size(), CvType.CV_8UC4);
+        }
+        double overlayAlpha = (double) VisualizerActivity.OVERLAY_ALPHA / 255.0;
+        Core.addWeighted(mRgba, 1.0 - overlayAlpha, mOverlayMat, overlayAlpha, 0.0, mFinalMat);
+        Core.addWeighted(mFinalMat, 1.0, mUnderlayMat, 1.0, 0.0, mFinalMat);
+
+        Bitmap bitmap = Utility.matToBitmap(mFinalMat);
         drawingView.changeImage(bitmap);
     }
 

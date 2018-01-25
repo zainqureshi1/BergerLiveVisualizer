@@ -97,6 +97,10 @@ public class DrawingView extends View {
         invalidate();
     }
 
+    public Bitmap getImage() {
+        return mBitmap;
+    }
+
     private float mX, mY;
     private static final float TOUCH_TOLERANCE = 4;
 
@@ -160,7 +164,12 @@ public class DrawingView extends View {
                 invalidate();
                 break;
         }
-        return true;
+        return performClick();
+    }
+
+    @Override
+    public boolean performClick() {
+        return super.performClick();
     }
 
     public void setFillColor(int color) {
