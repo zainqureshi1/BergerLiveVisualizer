@@ -1,4 +1,3 @@
-
 //
 // This file is auto-generated. Please don't modify it!
 //
@@ -6,13 +5,17 @@ package org.opencv.ml;
 
 import org.opencv.core.Algorithm;
 import org.opencv.core.Mat;
+import org.opencv.ml.TrainData;
 
 // C++: class StatModel
 //javadoc: StatModel
+
 public class StatModel extends Algorithm {
 
     protected StatModel(long addr) { super(addr); }
 
+    // internal usage only
+    public static StatModel __fromPtr__(long addr) { return new StatModel(addr); }
 
     public static final int
             UPDATE_MODEL = 1,

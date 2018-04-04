@@ -1,17 +1,21 @@
-
 //
 // This file is auto-generated. Please don't modify it!
 //
 package org.opencv.ml;
 
 import java.lang.String;
+import org.opencv.ml.Boost;
+import org.opencv.ml.DTrees;
 
 // C++: class Boost
 //javadoc: Boost
+
 public class Boost extends DTrees {
 
     protected Boost(long addr) { super(addr); }
 
+    // internal usage only
+    public static Boost __fromPtr__(long addr) { return new Boost(addr); }
 
     public static final int
             DISCRETE = 0,
@@ -28,7 +32,7 @@ public class Boost extends DTrees {
     public static Boost create()
     {
         
-        Boost retVal = new Boost(create_0());
+        Boost retVal = Boost.__fromPtr__(create_0());
         
         return retVal;
     }
@@ -42,7 +46,7 @@ public class Boost extends DTrees {
     public static Boost load(String filepath, String nodeName)
     {
         
-        Boost retVal = new Boost(load_0(filepath, nodeName));
+        Boost retVal = Boost.__fromPtr__(load_0(filepath, nodeName));
         
         return retVal;
     }
@@ -51,7 +55,7 @@ public class Boost extends DTrees {
     public static Boost load(String filepath)
     {
         
-        Boost retVal = new Boost(load_1(filepath));
+        Boost retVal = Boost.__fromPtr__(load_1(filepath));
         
         return retVal;
     }

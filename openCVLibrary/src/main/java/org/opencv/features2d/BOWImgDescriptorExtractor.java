@@ -1,4 +1,3 @@
-
 //
 // This file is auto-generated. Please don't modify it!
 //
@@ -12,12 +11,16 @@ import org.opencv.utils.Converters;
 
 // C++: class BOWImgDescriptorExtractor
 //javadoc: BOWImgDescriptorExtractor
+
 public class BOWImgDescriptorExtractor {
 
     protected final long nativeObj;
     protected BOWImgDescriptorExtractor(long addr) { nativeObj = addr; }
 
     public long getNativeObjAddr() { return nativeObj; }
+
+    // internal usage only
+    public static BOWImgDescriptorExtractor __fromPtr__(long addr) { return new BOWImgDescriptorExtractor(addr); }
 
     //
     // C++:   BOWImgDescriptorExtractor(Ptr_DescriptorExtractor dextractor, Ptr_DescriptorMatcher dmatcher)

@@ -59,8 +59,8 @@ public class VisualizerActivity extends AppCompatActivity implements OnFragmentI
     private final int FRAGMENT_INDEX_STILL = 1;
 
     // Live
-    public static final int[] INTERIOR_TOLERANCE = {35, 20, 15};
-    public static final int[] EXTERIOR_TOLERANCE = {24, 10, 4};
+    public static final int[] INTERIOR_TOLERANCE = {24, 10, 4};
+    public static final int[] EXTERIOR_TOLERANCE = {35, 20, 15};
     // Test
     //public static final int[] DEFAULT_TOLERANCE = {30, 40, 40};
 

@@ -1,4 +1,3 @@
-
 //
 // This file is auto-generated. Please don't modify it!
 //
@@ -14,10 +13,13 @@ import org.opencv.utils.Converters;
 
 // C++: class Feature2D
 //javadoc: Feature2D
+
 public class Feature2D extends Algorithm {
 
     protected Feature2D(long addr) { super(addr); }
 
+    // internal usage only
+    public static Feature2D __fromPtr__(long addr) { return new Feature2D(addr); }
 
     //
     // C++:  String getDefaultName()
@@ -198,6 +200,13 @@ public class Feature2D extends Algorithm {
 
 
     //
+    // C++:  void read(FileNode arg1)
+    //
+
+    // Unknown type 'FileNode' (I), skipping the function
+
+
+    //
     // C++:  void read(String fileName)
     //
 
@@ -209,6 +218,13 @@ public class Feature2D extends Algorithm {
         
         return;
     }
+
+
+    //
+    // C++:  void write(Ptr_FileStorage fs, String name = String())
+    //
+
+    // Unknown type 'Ptr_FileStorage' (I), skipping the function
 
 
     //

@@ -1,4 +1,3 @@
-
 //
 // This file is auto-generated. Please don't modify it!
 //
@@ -8,12 +7,16 @@ import java.lang.String;
 
 // C++: class DictValue
 //javadoc: DictValue
+
 public class DictValue {
 
     protected final long nativeObj;
     protected DictValue(long addr) { nativeObj = addr; }
 
     public long getNativeObjAddr() { return nativeObj; }
+
+    // internal usage only
+    public static DictValue __fromPtr__(long addr) { return new DictValue(addr); }
 
     //
     // C++:   DictValue(String s)

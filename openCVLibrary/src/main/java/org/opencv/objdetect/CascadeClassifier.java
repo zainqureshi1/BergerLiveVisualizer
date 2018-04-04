@@ -1,4 +1,3 @@
-
 //
 // This file is auto-generated. Please don't modify it!
 //
@@ -16,12 +15,16 @@ import org.opencv.utils.Converters;
 
 // C++: class CascadeClassifier
 //javadoc: CascadeClassifier
+
 public class CascadeClassifier {
 
     protected final long nativeObj;
     protected CascadeClassifier(long addr) { nativeObj = addr; }
 
     public long getNativeObjAddr() { return nativeObj; }
+
+    // internal usage only
+    public static CascadeClassifier __fromPtr__(long addr) { return new CascadeClassifier(addr); }
 
     //
     // C++:   CascadeClassifier(String filename)

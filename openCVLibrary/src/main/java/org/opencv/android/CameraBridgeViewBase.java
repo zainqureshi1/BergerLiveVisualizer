@@ -27,7 +27,6 @@ import android.view.SurfaceView;
  * frame to the screen.
  * The clients shall implement CvCameraViewListener.
  */
-@SuppressWarnings("unused")
 public abstract class CameraBridgeViewBase extends SurfaceView implements SurfaceHolder.Callback {
 
     private static final String TAG = "CameraBridge";
@@ -69,7 +68,7 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
         super(context, attrs);
 
         int count = attrs.getAttributeCount();
-        Log.d(TAG, "Attr count: " + count);
+        Log.d(TAG, "Attr count: " + Integer.valueOf(count));
 
         TypedArray styledAttrs = getContext().obtainStyledAttributes(attrs, R.styleable.CameraBridgeViewBase);
         if (styledAttrs.getBoolean(R.styleable.CameraBridgeViewBase_show_fps, false))
@@ -98,20 +97,20 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
          * @param width -  the width of the frames that will be delivered
          * @param height - the height of the frames that will be delivered
          */
-        void onCameraViewStarted(int width, int height);
+        public void onCameraViewStarted(int width, int height);
 
         /**
          * This method is invoked when camera preview has been stopped for some reason.
          * No frames will be delivered via onCameraFrame() callback after this method is called.
          */
-        void onCameraViewStopped();
+        public void onCameraViewStopped();
 
         /**
          * This method is invoked when delivery of the frame needs to be done.
          * The returned values - is a modified frame which needs to be displayed on the screen.
          * TODO: pass the parameters specifying the format of the frame (BPP, YUV or RGB and etc)
          */
-        Mat onCameraFrame(Mat inputFrame);
+        public Mat onCameraFrame(Mat inputFrame);
     }
 
     public interface CvCameraViewListener2 {
@@ -121,24 +120,24 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
          * @param width -  the width of the frames that will be delivered
          * @param height - the height of the frames that will be delivered
          */
-        void onCameraViewStarted(int width, int height);
+        public void onCameraViewStarted(int width, int height);
 
         /**
          * This method is invoked when camera preview has been stopped for some reason.
          * No frames will be delivered via onCameraFrame() callback after this method is called.
          */
-        void onCameraViewStopped();
+        public void onCameraViewStopped();
 
         /**
          * This method is invoked when delivery of the frame needs to be done.
          * The returned values - is a modified frame which needs to be displayed on the screen.
          * TODO: pass the parameters specifying the format of the frame (BPP, YUV or RGB and etc)
          */
-        Mat onCameraFrame(CvCameraViewFrame inputFrame);
-    }
+        public Mat onCameraFrame(CvCameraViewFrame inputFrame);
+    };
 
     protected class CvCameraViewListenerAdapter implements CvCameraViewListener2  {
-        CvCameraViewListenerAdapter(CvCameraViewListener oldStypeListener) {
+        public CvCameraViewListenerAdapter(CvCameraViewListener oldStypeListener) {
             mOldStyleListener = oldStypeListener;
         }
 
@@ -161,18 +160,18 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
                     break;
                 default:
                     Log.e(TAG, "Invalid frame format! Only RGBA and Gray Scale are supported!");
-            }
+            };
 
             return result;
         }
 
-        void setFrameFormat(int format) {
+        public void setFrameFormat(int format) {
             mPreviewFormat = format;
         }
 
         private int mPreviewFormat = RGBA;
         private CvCameraViewListener mOldStyleListener;
-    }
+    };
 
     /**
      * This class interface is abstract representation of single frame from camera for onCameraFrame callback
@@ -183,13 +182,13 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
         /**
          * This method returns RGBA Mat with frame
          */
-        Mat rgba();
+        public Mat rgba();
 
         /**
          * This method returns single channel gray scale Mat with frame
          */
-        Mat gray();
-    }
+        public Mat gray();
+    };
 
     public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {
         Log.d(TAG, "call surfaceChanged event");
@@ -198,7 +197,7 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
                 mSurfaceExist = true;
                 checkCurrentState();
             } else {
-                /* Surface changed. We need to stop camera and restart with new parameters */
+                /** Surface changed. We need to stop camera and restart with new parameters */
                 /* Pretend that old surface has been destroyed */
                 mSurfaceExist = false;
                 checkCurrentState();
@@ -255,6 +254,11 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
     public void disableFpsMeter() {
             mFpsMeter = null;
     }
+
+    /**
+     *
+     * @param listener
+     */
 
     public void setCvCameraViewListener(CvCameraViewListener2 listener) {
         mListener = listener;
@@ -325,7 +329,7 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
                 mListener.onCameraViewStopped();
             }
             break;
-        }
+        };
     }
 
     private void processExitState(int state) {
@@ -337,7 +341,7 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
         case STOPPED:
             onExitStoppedState();
             break;
-        }
+        };
     }
 
     private void onEnterStoppedState() {
@@ -410,17 +414,17 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
                     Log.d(TAG, "mStretch value: " + mScale);
 
                 if (mScale != 0) {
-                    canvas.drawBitmap(mCacheBitmap, new Rect(0, 0, mCacheBitmap.getWidth(), mCacheBitmap.getHeight()),
-                            new Rect((int) ((canvas.getWidth() - mScale * mCacheBitmap.getWidth()) / 2),
-                                    (int) ((canvas.getHeight() - mScale * mCacheBitmap.getHeight()) / 2),
-                                    (int) ((canvas.getWidth() - mScale * mCacheBitmap.getWidth()) / 2 + mScale * mCacheBitmap.getWidth()),
-                                    (int) ((canvas.getHeight() - mScale * mCacheBitmap.getHeight()) / 2 + mScale * mCacheBitmap.getHeight())), null);
+                    canvas.drawBitmap(mCacheBitmap, new Rect(0,0,mCacheBitmap.getWidth(), mCacheBitmap.getHeight()),
+                         new Rect((int)((canvas.getWidth() - mScale*mCacheBitmap.getWidth()) / 2),
+                         (int)((canvas.getHeight() - mScale*mCacheBitmap.getHeight()) / 2),
+                         (int)((canvas.getWidth() - mScale*mCacheBitmap.getWidth()) / 2 + mScale*mCacheBitmap.getWidth()),
+                         (int)((canvas.getHeight() - mScale*mCacheBitmap.getHeight()) / 2 + mScale*mCacheBitmap.getHeight())), null);
                 } else {
-                    canvas.drawBitmap(mCacheBitmap, new Rect(0, 0, mCacheBitmap.getWidth(), mCacheBitmap.getHeight()),
-                            new Rect((canvas.getWidth() - mCacheBitmap.getWidth()) / 2,
-                                    (canvas.getHeight() - mCacheBitmap.getHeight()) / 2,
-                                    (canvas.getWidth() - mCacheBitmap.getWidth()) / 2 + mCacheBitmap.getWidth(),
-                                    (canvas.getHeight() - mCacheBitmap.getHeight()) / 2 + mCacheBitmap.getHeight()), null);
+                     canvas.drawBitmap(mCacheBitmap, new Rect(0,0,mCacheBitmap.getWidth(), mCacheBitmap.getHeight()),
+                         new Rect((canvas.getWidth() - mCacheBitmap.getWidth()) / 2,
+                         (canvas.getHeight() - mCacheBitmap.getHeight()) / 2,
+                         (canvas.getWidth() - mCacheBitmap.getWidth()) / 2 + mCacheBitmap.getWidth(),
+                         (canvas.getHeight() - mCacheBitmap.getHeight()) / 2 + mCacheBitmap.getHeight()), null);
                 }
 
                 if (mFpsMeter != null) {
@@ -454,14 +458,17 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
     }
 
     public interface ListItemAccessor {
-        int getWidth(Object obj);
-        int getHeight(Object obj);
-    }
+        public int getWidth(Object obj);
+        public int getHeight(Object obj);
+    };
 
     /**
      * This helper method can be called by subclasses to select camera preview size.
      * It goes over the list of the supported preview sizes and selects the maximum one which
      * fits both values set via setMaxFrameSize() and surface frame allocated for this view
+     * @param supportedSizes
+     * @param surfaceWidth
+     * @param surfaceHeight
      * @return optimal frame size
      */
     protected Size calculateCameraFrameSize(List<?> supportedSizes, ListItemAccessor accessor, int surfaceWidth, int surfaceHeight) {
@@ -477,8 +484,8 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
 
             if (width <= maxAllowedWidth && height <= maxAllowedHeight) {
                 if (width >= calcWidth && height >= calcHeight) {
-                    calcWidth = width;
-                    calcHeight = height;
+                    calcWidth = (int) width;
+                    calcHeight = (int) height;
                 }
             }
         }

@@ -1,4 +1,3 @@
-
 //
 // This file is auto-generated. Please don't modify it!
 //
@@ -10,14 +9,19 @@ import java.util.List;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;
+import org.opencv.features2d.BRISK;
+import org.opencv.features2d.Feature2D;
 import org.opencv.utils.Converters;
 
 // C++: class BRISK
 //javadoc: BRISK
+
 public class BRISK extends Feature2D {
 
     protected BRISK(long addr) { super(addr); }
 
+    // internal usage only
+    public static BRISK __fromPtr__(long addr) { return new BRISK(addr); }
 
     //
     // C++: static Ptr_BRISK create(int thresh, int octaves, vector_float radiusList, vector_int numberList, float dMax = 5.85f, float dMin = 8.2f, vector_int indexChange = std::vector<int>())
@@ -29,7 +33,7 @@ public class BRISK extends Feature2D {
         Mat radiusList_mat = radiusList;
         Mat numberList_mat = numberList;
         Mat indexChange_mat = indexChange;
-        BRISK retVal = new BRISK(create_0(thresh, octaves, radiusList_mat.nativeObj, numberList_mat.nativeObj, dMax, dMin, indexChange_mat.nativeObj));
+        BRISK retVal = BRISK.__fromPtr__(create_0(thresh, octaves, radiusList_mat.nativeObj, numberList_mat.nativeObj, dMax, dMin, indexChange_mat.nativeObj));
         
         return retVal;
     }
@@ -39,7 +43,7 @@ public class BRISK extends Feature2D {
     {
         Mat radiusList_mat = radiusList;
         Mat numberList_mat = numberList;
-        BRISK retVal = new BRISK(create_1(thresh, octaves, radiusList_mat.nativeObj, numberList_mat.nativeObj));
+        BRISK retVal = BRISK.__fromPtr__(create_1(thresh, octaves, radiusList_mat.nativeObj, numberList_mat.nativeObj));
         
         return retVal;
     }
@@ -53,7 +57,7 @@ public class BRISK extends Feature2D {
     public static BRISK create(int thresh, int octaves, float patternScale)
     {
         
-        BRISK retVal = new BRISK(create_2(thresh, octaves, patternScale));
+        BRISK retVal = BRISK.__fromPtr__(create_2(thresh, octaves, patternScale));
         
         return retVal;
     }
@@ -62,7 +66,7 @@ public class BRISK extends Feature2D {
     public static BRISK create()
     {
         
-        BRISK retVal = new BRISK(create_3());
+        BRISK retVal = BRISK.__fromPtr__(create_3());
         
         return retVal;
     }
@@ -78,7 +82,7 @@ public class BRISK extends Feature2D {
         Mat radiusList_mat = radiusList;
         Mat numberList_mat = numberList;
         Mat indexChange_mat = indexChange;
-        BRISK retVal = new BRISK(create_4(radiusList_mat.nativeObj, numberList_mat.nativeObj, dMax, dMin, indexChange_mat.nativeObj));
+        BRISK retVal = BRISK.__fromPtr__(create_4(radiusList_mat.nativeObj, numberList_mat.nativeObj, dMax, dMin, indexChange_mat.nativeObj));
         
         return retVal;
     }
@@ -88,7 +92,7 @@ public class BRISK extends Feature2D {
     {
         Mat radiusList_mat = radiusList;
         Mat numberList_mat = numberList;
-        BRISK retVal = new BRISK(create_5(radiusList_mat.nativeObj, numberList_mat.nativeObj));
+        BRISK retVal = BRISK.__fromPtr__(create_5(radiusList_mat.nativeObj, numberList_mat.nativeObj));
         
         return retVal;
     }

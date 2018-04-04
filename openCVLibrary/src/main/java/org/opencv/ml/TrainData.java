@@ -1,4 +1,3 @@
-
 //
 // This file is auto-generated. Please don't modify it!
 //
@@ -8,16 +7,21 @@ import java.lang.String;
 import java.util.ArrayList;
 import java.util.List;
 import org.opencv.core.Mat;
+import org.opencv.ml.TrainData;
 import org.opencv.utils.Converters;
 
 // C++: class TrainData
 //javadoc: TrainData
+
 public class TrainData {
 
     protected final long nativeObj;
     protected TrainData(long addr) { nativeObj = addr; }
 
     public long getNativeObjAddr() { return nativeObj; }
+
+    // internal usage only
+    public static TrainData __fromPtr__(long addr) { return new TrainData(addr); }
 
     //
     // C++:  Mat getCatMap()
@@ -358,7 +362,7 @@ public class TrainData {
     public static TrainData create(Mat samples, int layout, Mat responses, Mat varIdx, Mat sampleIdx, Mat sampleWeights, Mat varType)
     {
         
-        TrainData retVal = new TrainData(create_0(samples.nativeObj, layout, responses.nativeObj, varIdx.nativeObj, sampleIdx.nativeObj, sampleWeights.nativeObj, varType.nativeObj));
+        TrainData retVal = TrainData.__fromPtr__(create_0(samples.nativeObj, layout, responses.nativeObj, varIdx.nativeObj, sampleIdx.nativeObj, sampleWeights.nativeObj, varType.nativeObj));
         
         return retVal;
     }
@@ -367,7 +371,7 @@ public class TrainData {
     public static TrainData create(Mat samples, int layout, Mat responses)
     {
         
-        TrainData retVal = new TrainData(create_1(samples.nativeObj, layout, responses.nativeObj));
+        TrainData retVal = TrainData.__fromPtr__(create_1(samples.nativeObj, layout, responses.nativeObj));
         
         return retVal;
     }
