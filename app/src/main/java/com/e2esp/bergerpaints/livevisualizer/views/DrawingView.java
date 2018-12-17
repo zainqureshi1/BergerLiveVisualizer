@@ -164,7 +164,8 @@ public class DrawingView extends View {
                 invalidate();
                 break;
         }
-        return performClick();
+        return true;
+        //return performClick();
     }
 
     @Override
